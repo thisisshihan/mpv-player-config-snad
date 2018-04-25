@@ -1,6 +1,6 @@
 # mpv config for windows / ubuntu / linux / macos
-# simplified
-# mpv a free, open source, and cross-platform media player
+simplified
+mpv a free, open source, and cross-platform media player
 
 
 config master for mpv player
