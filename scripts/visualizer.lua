@@ -14,9 +14,9 @@ local opts = {
     -- off
     -- showcqtbar
 
-    quality = "low",
+    quality = "medium",
 
-    height = 6,
+    height = 4,
     -- [4 .. 12]
 }
 
@@ -116,8 +116,8 @@ opts.height = math.floor(opts.height)
 local function get_visualizer(name, quality)
     local w, h, fps
 
-    if quality == "low" then
-        w = 960
+    if quality == "medium" then
+        w = 1920
         fps = 30
     else
         msg.log("error", "invalid quality")
