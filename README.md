@@ -24,7 +24,7 @@ A straightforward C API was designed from the ground up to make mpv usable as a 
 Active development:
 mpv is under active development, focusing on code refactoring and cleanups as well as adding features. Want a feature? Post a patch or request it!
 
-config files should be Download as zip and copy this files to 
+config files should be Download as zip, extract them to a folder and copy the files to 
 
      ...AppData\Roaming\mpv
 or
