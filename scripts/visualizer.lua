@@ -1,7 +1,6 @@
 -- mpv various audio visualization
 -- This is a simplified visualizer by snad
 -- you can find original in "removed_scripts" folder
--- this will work only in audio file with no album art 
 
 local opts = {
     mode = "noalbumart",
@@ -16,8 +15,8 @@ local opts = {
 
     quality = "medium",
 
-    height = 4,
-    -- [4 .. 12]
+    height = 3,
+    -- [3 .. 12]
 }
 
 local axis_0 = "image/png;base64," ..
@@ -68,7 +67,7 @@ local options = require 'mp.options'
 local msg     = require 'mp.msg'
 
 options.read_options(opts)
-opts.height = math.min(12, math.max(4, opts.height))
+opts.height = math.min(12, math.max(3, opts.height))
 opts.height = math.floor(opts.height)
 
 local function get_visualizer(name, quality)
