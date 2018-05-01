@@ -1,7 +1,7 @@
 # mpv config for windows / ubuntu / linux / macos
 mpv a free, open source, and cross-platform media player
 
-this if simplified settings, load / work faster.
+    this if simplified settings, load / work faster. edited by snad
 
 Overview:
 mpv is a fork of mplayer2 and MPlayer. It shares some features with the former projects while introducing many more.
