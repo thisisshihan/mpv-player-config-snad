@@ -1,10 +1,10 @@
 # mpv config for windows / ubuntu / linux / macos
-this if simplified settings, load / work faster. edited by snad
+**this if simplified settings, load / work faster. edited by snad**
 
 config files should be Download as zip,
 - extract them to a folder
-- copy the files to`...AppData\Roaming\mpv` or
-- create a *portable_config* folde and copy the files to `..\portable_config`
+- copy the files to **`...AppData\Roaming\mpv`** *or*
+- create a **portable_config** folde and copy the files to **`..\portable_config`**
 
 --------------
 
