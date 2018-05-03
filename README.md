@@ -4,7 +4,7 @@
 config files should be Download as zip,
 - extract them to a folder
 - copy the files to **`...AppData\Roaming\mpv`** *or*
-- create a **portable_config** folde and copy the files to **`..\portable_config`**
+- create a **portable_config** folde in same as **mpv.exe folder** and copy the files to **`..\portable_config`**
 
 --------------
 
