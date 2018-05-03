@@ -1,6 +1,7 @@
 # mpv config for windows / ubuntu / linux / macos
 **this if simplified settings, load / work faster. edited by snad**
 
+**in windows**
 config files should be Download as zip,
 - extract them to a folder
 - copy the files to **`...AppData\Roaming\mpv`** *or*
