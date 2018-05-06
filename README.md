@@ -51,3 +51,4 @@ A straightforward C API was designed from the ground up to make mpv usable as a 
 mpv is under active development, focusing on code refactoring and cleanups as well as adding features. Want a feature?
 
 -------------------------------------------
+_`end of README.md`_
