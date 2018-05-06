@@ -18,7 +18,7 @@ _mpv a free, open source, and cross-platform media player_
 
 **Overview:**
 
-mpv is a fork of mplayer2 and MPlayer. It shares some features with the former projects while introducing many more.
+mpv is a fork of [mplayer2](http://www.mplayerhq.hu/design7/info.html) and [MPlayer](http://www.mplayerhq.hu/design7/info.html). It shares some features with the former projects while introducing many more.
 
 
 **Streamlined CLI options:**
