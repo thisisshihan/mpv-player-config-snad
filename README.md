@@ -1,6 +1,6 @@
-# [mpv](https://mpv.io/) config for windows / ubuntu / linux / macos
+# mpv config for windows / ubuntu / linux / macos
 -----------------------------------
-_mpv a free, open source, and cross-platform media player_
+_[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 
 ![https://mpv.io/](https://mpv.io/images/mpv-logo-128-0baae5aa.png)
 
