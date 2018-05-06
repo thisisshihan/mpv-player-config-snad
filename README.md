@@ -1,15 +1,18 @@
-# mpv config for windows / ubuntu / linux / macos
+# [mpv](https://mpv.io/) config for windows / ubuntu / linux / macos
 -----------------------------------
 _mpv a free, open source, and cross-platform media player_
 
-![http://mpv.io/](https://mpv.io/images/mpv-logo-128-0baae5aa.png)
+![https://mpv.io/](https://mpv.io/images/mpv-logo-128-0baae5aa.png)
 
-**For Windows:**
+**Downloads for windows / ubuntu / linux / macos / Android** [mpv.io](http://mpv.io/installation).
+**Downloads for windows beta** [sourceforge.net](https://sourceforge.net/projects/mpv-player-windows/files).
+**Downloads for Android test builds** [github.com](https://github.com/mpv-android/mpv-android/releases).
+
+**Config For Windows:**
 * Download this files as a zip and extract them to a folder.
 * copy extracted files to **`...AppData\Roaming\mpv`** _or_
 * create a folder called as _`portable_config`_ in the folder where mpv.exe contain and,
 * copy extracted files to **`...portable_config`**
-
 
 **Overview:**
 
