@@ -1,5 +1,5 @@
-# mpv config for windows / ubuntu / linux / macos
 -----------------------------------
+# mpv config for windows / ubuntu / linux / macos
 _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 
 ![https://mpv.io/](https://mpv.io/images/mpv-logo-128-0baae5aa.png)
@@ -49,3 +49,5 @@ A straightforward C API was designed from the ground up to make mpv usable as a 
 **Active development:**
 
 mpv is under active development, focusing on code refactoring and cleanups as well as adding features. Want a feature?
+
+-------------------------------------------
