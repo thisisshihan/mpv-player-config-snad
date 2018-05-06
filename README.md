@@ -10,22 +10,29 @@ _mpv a free, open source, and cross-platform media player_
 * copy extracted files to **`...portable_config`**
 
 **Overview:**
-- mpv is a fork of mplayer2 and MPlayer. It shares some features with the former projects while introducing many more.
+
+mpv is a fork of mplayer2 and MPlayer. It shares some features with the former projects while introducing many more.
 
 **Streamlined CLI options:**
-- MPlayer's options parser was improved to behave more like other CLI programs, and many option names and semantics were reworked to make them more intuitive and memorable.
 
-**On Screen Controller**
-- While mpv has no official GUI, it has a small controller that is triggered by mouse movement.
+MPlayer's options parser was improved to behave more like other CLI programs, and many option names and semantics were reworked to make them more intuitive and memorable.
 
-**High quality video output**
-- mpv has an OpenGL based video output that is capable of many features loved by videophiles, such as video scaling with popular high quality algorithms, color management, frame timing, interpolation, HDR, and more.
+**On Screen Controller:**
 
-**GPU video decoding**
-- mpv leverages the FFmpeg hwaccel APIs to support VDPAU, VAAPI, DXVA2, VDA and VideoToolbox video decoding acceleration.
+While mpv has no official GUI, it has a small controller that is triggered by mouse movement.
 
-**Embeddable**
-- A straightforward C API was designed from the ground up to make mpv usable as a library and facilitate easy integration into other applications.
+**High quality video output:**
 
-**Active development**
-- mpv is under active development, focusing on code refactoring and cleanups as well as adding features. Want a feature?
+mpv has an OpenGL based video output that is capable of many features loved by videophiles, such as video scaling with popular high quality algorithms, color management, frame timing, interpolation, HDR, and more.
+
+**GPU video decoding:**
+
+mpv leverages the FFmpeg hwaccel APIs to support VDPAU, VAAPI, DXVA2, VDA and VideoToolbox video decoding acceleration.
+
+**Embeddable:**
+
+A straightforward C API was designed from the ground up to make mpv usable as a library and facilitate easy integration into other applications.
+
+**Active development:**
+
+mpv is under active development, focusing on code refactoring and cleanups as well as adding features. Want a feature?
