@@ -9,8 +9,7 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 - Windows beta: [sourceforge.net](https://sourceforge.net/projects/mpv-player-windows/files)
 - Android test builds: [github.com](https://github.com/mpv-android/mpv-android/releases)
 
-
-**Config For Windows:**
+## Config For Windows:
 * Download this files as a [zip file](https://github.com/thisisshihan/mpv-player-config-snad/archive/mpv-config-snad-windows-ubuntu-linux-macos.zip) and extract them to a folder.
 * copy extracted files to **`...AppData\Roaming\mpv`** _or_
 * create a folder as _`portable_config`_ in the folder where mpv.exe exist and,
