@@ -112,4 +112,3 @@ function do_crop()
 end
 
 mp.add_key_binding("", "auto_crop", autocrop_start)
-mp.add_key_binding("", "auto_crop", autocrop_start)
