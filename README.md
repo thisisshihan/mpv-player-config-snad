@@ -10,6 +10,7 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 * Windows / ubuntu / linux / macos / Android stable cahnnel: [mpv.io](http://mpv.io/installation)
 * Windows beta channel: [sourceforge.net](https://sourceforge.net/projects/mpv-player-windows/files)
 * Android test builds: [github.com](https://github.com/mpv-android/mpv-android/releases)
+* Config files: [zip file](https://goo.gl/7Mphpk) 
 
 ## Config For Windows:
 * Download this files as a [zip file](https://goo.gl/7Mphpk) and extract them to a folder.
