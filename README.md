@@ -1,5 +1,3 @@
-_`beginning of README.md`_
-
 -----------------------------------
 # mpv config for windows / ubuntu / linux / macos
 _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
@@ -7,10 +5,11 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 ![https://mpv.io/](https://mpv.io/images/mpv-logo-128-0baae5aa.png)
 
 ## Downloads:
-* Windows / ubuntu / linux / macos / Android stable cahnnel: [mpv.io](http://mpv.io/installation)
-* Windows beta channel: [sourceforge.net](https://sourceforge.net/projects/mpv-player-windows/files)
-* Android test builds: [github.com](https://github.com/mpv-android/mpv-android/releases)
-* Config files for Windows / ubuntu / linux / macos: [366KiB](https://goo.gl/7Mphpk) 
+* Windows / ubuntu / linux / macos / Android stable cahnnel official: [mpv.io](http://mpv.io/installation)
+* Windows beta channel official: [sourceforge.net](https://sourceforge.net/projects/mpv-player-windows/files)
+* Android stable official: [play.google.com](https://play.google.com/store/apps/details?id=is.xyz.mpv&hl=en)
+* Android test builds official: [github.com](https://github.com/mpv-android/mpv-android/releases)
+* Config files by SNAD for Windows / ubuntu / linux / macos: [366KiB](https://goo.gl/7Mphpk) 
 
 ## Config For Windows:
 * Download this files as a [zip file](https://goo.gl/7Mphpk) and extract them to a folder.
@@ -41,4 +40,3 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 > mpv is under active development, focusing on code refactoring and cleanups as well as adding features. Want a feature?
 
 -------------------------------------------
-_`end of README.md`_
