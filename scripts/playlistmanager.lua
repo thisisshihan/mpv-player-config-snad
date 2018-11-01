@@ -610,7 +610,7 @@ function save_playlist()
       file:write(fullpath, "\n")
       i=i+1
     end
-    mp.osd_message("☰ Playlist saved to: "..savepath)
+    mp.osd_message("☰ Playlist Saved to: "..savepath)
     file:close()
   end
 end
@@ -699,7 +699,7 @@ function add_keybinds()
   mp.add_forced_key_binding('CTRL+s', 'shuffleplaylist1', shuffleplaylist, "repeatable")
   mp.add_forced_key_binding('CTRL+S', 'shuffleplaylist2', shuffleplaylist, "repeatable")
   mp.add_forced_key_binding('CTRL+a', 'sortplaylist1', sortplaylist, "repeatable")
-  mp.add_forced_key_binding('CTRL+S', 'sortplaylist2', sortplaylist, "repeatable")
+  mp.add_forced_key_binding('CTRL+A', 'sortplaylist2', sortplaylist, "repeatable")
   mp.add_forced_key_binding('F12', 'saveplaylist', save_playlist, "repeatable")
 end
 
@@ -778,10 +778,11 @@ mp.register_script_message("playlistmanager", handlemessage)
 mp.add_key_binding("", "sortplaylist", sortplaylist)
 -- mp.add_key_binding("", "shuffleplaylist", shuffleplaylist)
 -- mp.add_key_binding("", "loadfiles", playlist)
-mp.add_key_binding("", "saveplaylist", save_playlist)
+mp.add_key_binding("", "save-playlist", save_playlist)
 mp.add_key_binding("", "toggle-playlist", toggle_playlist)
 mp.add_key_binding("", "show-playlist", showplaylist)
 mp.add_key_binding("", "loadfiles-to-playlist", loadfiles_to_playlist)
+mp.add_key_binding("", "remove-file-fromplaylist", removefile)
 
 mp.register_event("file-loaded", on_loaded)
 mp.register_event("end-file", on_closed)
