@@ -682,7 +682,7 @@ function shuffleplaylist()
 end
 
 function loadfiles_to_playlist()
-    if plen == 1 then
+    if plen >= 1 then
       msg.info("Loading files from playing files directory")
       playlist()
     end
