@@ -94,7 +94,7 @@ local settings = {
   prefer_titles = false,
 
   --osd timeout on inactivity, with high value on this open_toggles is good to be true
-  playlist_display_timeout = 5,
+  playlist_display_timeout = 3,
 
   --amount of entries to show before slicing. Optimal value depends on font/video size etc.
   showamount = 10,
@@ -106,10 +106,10 @@ local settings = {
   --read http://docs.aegisub.org/3.2/ASS_Tags/ for reference of tags
   --undeclared tags will use default osd settings
   --these styles will be used for the whole playlist. More specific styling will need to be hacked in
-  style_ass_tags = "{\\fscx80\\fscy80}",
+  style_ass_tags = "{\\fscx100\\fscy100}",
   --paddings from top left corner
   text_padding_x = 25,
-  text_padding_y = 25,
+  text_padding_y = 100,
 
   --set title of window with stripped name
   set_title_stripped = false,
@@ -130,23 +130,23 @@ local settings = {
   --playlist_header_1  = "[k]:保存高级播放列表  [右]:选中/不选中  [左]:移除当前项目  [回车]:播放当前项目",
   playlist_header_lang = "eng",
   playlist_header_chs = "正在播放: %filename%N%N高级播放列表 - %cursor/%plen",
-  playlist_header_eng = "[%pos/%plen] %filename%N%N%N☰ Playlist:", --"Playing: [%pos/%plen] %filename%N%N",
+  playlist_header_eng = "[%pos/%plen] ▷ %filename%N%N%N☰ Playlist:", --"Playing: [%pos/%plen] %filename%N%N",
   playlist_header = "正在播放: %filename%N%N高级播放列表 - %cursor/%plen",
   --playlist display signs, prefix is before filename, and suffix after
   --currently playing file 
-  playing_str_prefix = "○◉  ",
+  playing_str_prefix = "▷ - ",
   playing_str_suffix = "",
 
   --cursor is ontop of playing file
-  playing_and_cursor_str_prefix = "◉◉  ",
+  playing_and_cursor_str_prefix = "▶ - ",
   playing_and_cursor_str_suffix = "",
 
   --cursor file prefix and suffix
-  cursor_str_prefix = "◉  ",
+  cursor_str_prefix = "● - ",
   cursor_str_suffix ="",
 
   --non cursor file prefix and suffix
-  non_cursor_str_prefix = "○  ",
+  non_cursor_str_prefix = "○ - ",
   non_cursor_str_suffix = "",
 
   --when you select a file
@@ -156,6 +156,7 @@ local settings = {
   --when currently playing file is selected
   playing_str_selected_prefix = "▶ = ",
   playing_str_selected_suffix = "",
+
   --top and bottom if playlist entries are sliced off from display
   playlist_sliced_prefix = "...",
   playlist_sliced_suffix = "...",
@@ -465,6 +466,7 @@ function showplaylist()
   keybindstimer:resume()
 end
 
+--[=====[
 tag=nil
 function tagcurrent()
   refresh_globals()
@@ -476,6 +478,7 @@ function tagcurrent()
   end
   showplaylist()
 end
+--]=====]
 
 function removefile()
   refresh_globals()
@@ -530,10 +533,11 @@ function jumptofile()
   end
 end
 
+--[=====[
 --Creates a playlist of all files in directory, will keep the order and position
 --For exaple, Folder has 12 files, you open the 5th file and run this, the remaining 7 are added behind the 5th file and prior 4 files before it
 function playlist(force_dir)
-  refresh_globals()
+  --refresh_globals()
   if not directory and plen > 0 then return end
   local hasfile = true
   if plen == 0 then
@@ -586,9 +590,10 @@ function playlist(force_dir)
     msg.info("Ignoring directory structure and using playlist sort")
     sortplaylist()
   end
-  refresh_globals()
+  --refresh_globals()
   if playlist_visible then showplaylist() end
 end
+--]=====]
 
 --saves the current playlist into a m3u file
 function save_playlist()
@@ -681,26 +686,30 @@ function shuffleplaylist()
   if playlist_visible then showplaylist() end
 end
 
+--[=====[
 function loadfiles_to_playlist()
     if plen >= 1 then
       msg.info("Loading files from playing files directory")
       playlist()
     end
 end
+--]=====]
 
 function add_keybinds()
   mp.add_forced_key_binding('UP', 'moveup', moveup, "repeatable")
   mp.add_forced_key_binding('DOWN', 'movedown', movedown, "repeatable")
   --mp.add_forced_key_binding('SPACE', 'tagcurrent', tagcurrent)
-  mp.add_forced_key_binding('RIGHT', 'jumptofile1', jumptofile)
-  mp.add_forced_key_binding('SPACE', 'jumptofile2', jumptofile)
-  mp.add_forced_key_binding('LEFT', 'removefile1', removefile, "repeatable")
+  mp.add_forced_key_binding('.', 'jumptofile1', jumptofile)
+  mp.add_forced_key_binding('>', 'jumptofile2', jumptofile)
+  --mp.add_forced_key_binding('LEFT', 'removefile1', removefile, "repeatable")
   mp.add_forced_key_binding('DEL', 'removefile2', removefile, "repeatable")
-  mp.add_forced_key_binding('CTRL+s', 'shuffleplaylist1', shuffleplaylist, "repeatable")
-  mp.add_forced_key_binding('CTRL+S', 'shuffleplaylist2', shuffleplaylist, "repeatable")
-  mp.add_forced_key_binding('CTRL+a', 'sortplaylist1', sortplaylist, "repeatable")
-  mp.add_forced_key_binding('CTRL+A', 'sortplaylist2', sortplaylist, "repeatable")
-  mp.add_forced_key_binding('F12', 'saveplaylist', save_playlist, "repeatable")
+  mp.add_forced_key_binding('s', 'shuffleplaylist1', shuffleplaylist, "repeatable")
+  mp.add_forced_key_binding('S', 'shuffleplaylist2', shuffleplaylist, "repeatable")
+  mp.add_forced_key_binding('a', 'sortplaylist1', sortplaylist, "repeatable")
+  mp.add_forced_key_binding('A', 'sortplaylist2', sortplaylist, "repeatable")
+  mp.add_forced_key_binding('F12', 'saveplaylist1', save_playlist, "repeatable")
+  mp.add_forced_key_binding('CTRL+s', 'saveplaylist2', save_playlist, "repeatable")
+  mp.add_forced_key_binding('CTRL+S', 'saveplaylist3', save_playlist, "repeatable")
 end
 
 function remove_keybinds()
@@ -713,13 +722,15 @@ function remove_keybinds()
     --mp.remove_key_binding('tagcurrent')
     mp.remove_key_binding('jumptofile1')
     mp.remove_key_binding('jumptofile2')
-    mp.remove_key_binding('removefile1')
+    --mp.remove_key_binding('removefile1')
     mp.remove_key_binding('removefile2')
     mp.remove_key_binding('shuffleplaylist1')
     mp.remove_key_binding('shuffleplaylist2')
     mp.remove_key_binding('sortplaylist1')
     mp.remove_key_binding('sortplaylist2')
-    mp.remove_key_binding('saveplaylist')
+    mp.remove_key_binding('saveplaylist1')
+    mp.remove_key_binding('saveplaylist2')
+    mp.remove_key_binding('saveplaylist3')
   end
 end
 
