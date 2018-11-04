@@ -106,7 +106,7 @@ local settings = {
   --read http://docs.aegisub.org/3.2/ASS_Tags/ for reference of tags
   --undeclared tags will use default osd settings
   --these styles will be used for the whole playlist. More specific styling will need to be hacked in
-  style_ass_tags = "{\\fscx80\\fscy80\\an1}",
+  style_ass_tags = "{\\fscx80\\fscy80\\an4}",
   --paddings from top left corner
   text_padding_x = 25,
   text_padding_y = 100,
@@ -134,20 +134,20 @@ local settings = {
   playlist_header = "正在播放: %filename%N%N高级播放列表 - %cursor/%plen",
   --playlist display signs, prefix is before filename, and suffix after
   --currently playing file 
-  playing_str_prefix = "▷ - ",
-  playing_str_suffix = "",
+  playing_str_prefix = "▷ ",
+  playing_str_suffix = " ",
 
   --cursor is ontop of playing file
-  playing_and_cursor_str_prefix = "▶ - ",
-  playing_and_cursor_str_suffix = "",
+  playing_and_cursor_str_prefix = "▶ ",
+  playing_and_cursor_str_suffix = " ❰",
 
   --cursor file prefix and suffix
-  cursor_str_prefix = "● - ",
-  cursor_str_suffix ="",
+  cursor_str_prefix = "● ",
+  cursor_str_suffix = " ❰",
 
   --non cursor file prefix and suffix
-  non_cursor_str_prefix = "○ - ",
-  non_cursor_str_suffix = "",
+  non_cursor_str_prefix = "○ ",
+  non_cursor_str_suffix = " ",
 
   --when you select a file
   cursor_str_selected_prefix = "● = ",
