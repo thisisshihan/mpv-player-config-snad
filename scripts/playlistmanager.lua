@@ -106,15 +106,15 @@ local settings = {
   --read http://docs.aegisub.org/3.2/ASS_Tags/ for reference of tags
   --undeclared tags will use default osd settings
   --these styles will be used for the whole playlist. More specific styling will need to be hacked in
-  style_ass_tags = "{\\fscx80\\fscy80}",
+  style_ass_tags = "{\\fscx80\\fscy80\\an1}",
   --paddings from top left corner
   text_padding_x = 25,
   text_padding_y = 100,
 
   --set title of window with stripped name
-  set_title_stripped = false,
-  title_prefix = "MPV-EASY Player",
-  title_suffix = " - mpv",
+  set_title_stripped = true,
+  title_prefix = "SNAD ~ ",
+  title_suffix = "",
 
   --slice long filenames, and how many chars to show
   slice_longfilenames = false,
@@ -236,7 +236,8 @@ function on_loaded()
     mp.commandv('show-text', strippedname)
   end
   if settings.set_title_stripped then
-    mp.set_property("title", settings.title_prefix..strippedname..settings.title_suffix)
+    mp.set_property("title", settings.title_prefix..mp.get_property('title')..settings.title_suffix)
+    --mp.set_property("title", settings.title_prefix..strippedname..settings.title_suffix)
   end
 
   local didload = false
@@ -408,12 +409,12 @@ function draw_playlist()
   refresh_globals()
   local ass = assdraw.ass_new()
   ass:new_event()
-  ass:pos(settings.text_padding_x, settings.text_padding_y)
+  --ass:pos(settings.text_padding_x, settings.text_padding_y)
   ass:append(settings.style_ass_tags)
 
   if settings.playlist_header ~= "" then
   --ass:append(parse_string_props(settings.playlist_header_0).."\\N")
-	--ass:append(parse_string_props(settings.playlist_header_1).."\\N")
+  --ass:append(parse_string_props(settings.playlist_header_1).."\\N")
     ass:append(parse_string_props(settings.playlist_header).."\\N")
   end
   local start = cursor - math.floor(settings.showamount/2)
@@ -699,8 +700,9 @@ function add_keybinds()
   mp.add_forced_key_binding('UP', 'moveup', moveup, "repeatable")
   mp.add_forced_key_binding('DOWN', 'movedown', movedown, "repeatable")
   --mp.add_forced_key_binding('SPACE', 'tagcurrent', tagcurrent)
-  mp.add_forced_key_binding('.', 'jumptofile1', jumptofile)
-  mp.add_forced_key_binding('>', 'jumptofile2', jumptofile)
+  mp.add_forced_key_binding('.', 'jumptofile1', jumptofile, "repeatable")
+  mp.add_forced_key_binding('>', 'jumptofile2', jumptofile, "repeatable")
+  mp.add_forced_key_binding('SPACE', 'jumptofile3', jumptofile, "repeatable")
   --mp.add_forced_key_binding('LEFT', 'removefile1', removefile, "repeatable")
   mp.add_forced_key_binding('DEL', 'removefile2', removefile, "repeatable")
   mp.add_forced_key_binding('s', 'shuffleplaylist1', shuffleplaylist, "repeatable")
@@ -722,6 +724,7 @@ function remove_keybinds()
     --mp.remove_key_binding('tagcurrent')
     mp.remove_key_binding('jumptofile1')
     mp.remove_key_binding('jumptofile2')
+    mp.remove_key_binding('jumptofile3')
     --mp.remove_key_binding('removefile1')
     mp.remove_key_binding('removefile2')
     mp.remove_key_binding('shuffleplaylist1')
