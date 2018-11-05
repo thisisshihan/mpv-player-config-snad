@@ -2,7 +2,7 @@
 # mpv config for windows / ubuntu / linux / macos
 _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 
-![https://mpv.io/](https://mpv.io/images/mpv-logo-128-0baae5aa.png)
+![https://mpv.io/](https://github.com/thisisshihan/screenshots/blob/master/mpv.icon256.png)
 
 ## Downloads:
 * Windows / ubuntu / linux / macos / Android stable cahnnel official: [mpv.io](http://mpv.io/installation)
