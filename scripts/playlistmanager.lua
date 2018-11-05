@@ -1,3 +1,4 @@
+local assdraw = require('mp.assdraw')
 local settings = {
 
   -- #### FUNCTIONALITY SETTINGS
@@ -112,7 +113,7 @@ local settings = {
   text_padding_y = 100,
 
   --set title of window with stripped name
-  set_title_stripped = true,
+  set_title_stripped = false,
   title_prefix = "SNAD ~ ",
   title_suffix = "",
 
@@ -405,7 +406,38 @@ function parse_string_props(string)
                :gsub("%%filename", stripfilename(mp.get_property("filename")))
 end
 
+--[=====[
+local ass_set_color = function (idx, color)
+    assert(color:len() == 8 or color:len() == 6)
+    local ass = ""
+
+    -- Set alpha value (if present)
+    if color:len() == 8 then
+        local alpha = 0xff - tonumber(color:sub(7, 8), 16)
+        ass = ass .. string.format("\\%da&H%X&", idx, alpha)
+    end
+
+    -- Swizzle RGB to BGR and build ASS string
+    color = color:sub(5, 6) .. color:sub(3, 4) .. color:sub(1, 2)
+    return "{" .. ass .. string.format("\\%dc&H%s&", idx, color) .. "}"
+end
+--]=====]
+
 function draw_playlist()
+    --[=====[
+    local osd_w, osd_h = mp.get_property("width"), mp.get_property("height")
+
+    ass = assdraw.ass_new()
+    ass:draw_start()
+    ass:pos(0, 0)
+
+    ass:append(ass_set_color(1, "000000aa"))
+    ass:append(ass_set_color(3, "00000000"))
+    ass:rect_cw(0, 0, osd_w, osd_h)
+
+    ass:draw_stop()
+    mp.set_osd_ass(osd_w, osd_h, ass.text)
+    --]=====]
   refresh_globals()
   local ass = assdraw.ass_new()
   ass:new_event()
@@ -465,6 +497,40 @@ function showplaylist()
 
   keybindstimer:kill()
   keybindstimer:resume()
+end
+
+function toggle_playlist()
+  if settings.open_toggles then
+    if playlist_visible then
+      keybindstimer:kill()
+      remove_keybinds()
+      return
+    end
+  end
+  showplaylist()
+end
+
+function showplaylist()
+  refresh_globals()
+  if plen == 0 then return end
+  playlist_visible = true
+  add_keybinds()
+
+  draw_playlist()
+
+  keybindstimer:kill()
+  keybindstimer:resume()
+end
+
+function showplaylist1()
+    refresh_globals()
+    playlist_visible = true
+    add_keybinds()
+
+    draw_playlist()
+
+    keybindstimer:kill()
+    keybindstimer:resume()
 end
 
 --[=====[
@@ -794,7 +860,7 @@ mp.add_key_binding("", "sortplaylist", sortplaylist)
 -- mp.add_key_binding("", "loadfiles", playlist)
 mp.add_key_binding("", "save-playlist", save_playlist)
 mp.add_key_binding("", "toggle-playlist", toggle_playlist)
-mp.add_key_binding("", "show-playlist", showplaylist)
+mp.add_key_binding("", "show-playlist", showplaylist1)
 mp.add_key_binding("", "loadfiles-to-playlist", loadfiles_to_playlist)
 mp.add_key_binding("", "remove-file-fromplaylist", removefile)
 
