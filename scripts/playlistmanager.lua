@@ -1,4 +1,3 @@
-local assdraw = require('mp.assdraw')
 local settings = {
 
   -- #### FUNCTIONALITY SETTINGS
