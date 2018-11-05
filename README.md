@@ -18,13 +18,13 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 * copy extracted files to **`...portable_config`**
 -------------------------------------
 
+**Simple Interface**<br/>
+> ![s2](https://github.com/thisisshihan/screenshots/blob/master/screenshot2.png)
+##
 **Advanced Playlist Manager**<br/>
 > _Show Playlist_ <kbd> P </kbd> / <kbd> TAB </kbd><br/>
 > _Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd><br/>
 ![s1](https://github.com/thisisshihan/screenshots/blob/master/screenshot1.png)
-##
-**Simple Interface**<br/>
-> ![s2](https://github.com/thisisshihan/screenshots/blob/master/screenshot2.png)
 ##
 **Improved Video Filter for Best Video Experience**<br/>
 > _Apply Video Filter_ <kbd> V </kbd>
