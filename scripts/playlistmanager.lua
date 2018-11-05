@@ -778,7 +778,8 @@ function add_keybinds()
   mp.add_forced_key_binding('F12', 'saveplaylist1', save_playlist, "repeatable")
   mp.add_forced_key_binding('CTRL+s', 'saveplaylist2', save_playlist, "repeatable")
   mp.add_forced_key_binding('CTRL+S', 'saveplaylist3', save_playlist, "repeatable")
-  mp.add_forced_key_binding('LEFT', 'toggleplaylist', toggle_playlist, "repeatable")
+  mp.add_forced_key_binding('LEFT', 'toggleplaylist1', toggle_playlist, "repeatable")
+  mp.add_forced_key_binding('RIGHT', 'toggleplaylist2', toggle_playlist, "repeatable")
 end
 
 function remove_keybinds()
@@ -801,7 +802,8 @@ function remove_keybinds()
     mp.remove_key_binding('saveplaylist1')
     mp.remove_key_binding('saveplaylist2')
     mp.remove_key_binding('saveplaylist3')
-    mp.remove_key_binding('toggleplaylist')
+    mp.remove_key_binding('toggleplaylist1')
+    mp.remove_key_binding('toggleplaylist2')
   end
 end
 
