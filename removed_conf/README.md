@@ -1,11 +1,6 @@
 repl.lua.
 ========
 
-**repl.lua** is a REPL for [mpv][1] input commands. It is displayed on the
-video window. It also shows log messages.
-
-![screenshot](https://rossy.github.io/mpv-repl/screen.png)
-
 Keybindings
 -----------
 
