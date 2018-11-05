@@ -18,6 +18,20 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 * copy extracted files to **`...portable_config`**
 -------------------------------------
 
+**Advanced Playlist Manager**<br/>
+> _Show Playlist_ <kbd> P </kbd> / <kbd> TAB </kbd><br/>
+> _Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd><br/>
+![s1](https://github.com/thisisshihan/screenshots/blob/master/screenshot1.png)
+##
+**Simple Interface**<br/>
+> ![s2](https://github.com/thisisshihan/screenshots/blob/master/screenshot2.png)
+##
+**Improved Video Filter for Best Video Experience**<br/>
+> _Apply Video Filter_ <kbd> V </kbd>
+![s2](https://github.com/thisisshihan/screenshots/blob/master/screenshot4.png)<br/>
+_1-without filter, 2-with filter_
+-------------------------------------
+
 **Overview:**
 > mpv is a fork of [mplayer2](http://www.mplayerhq.hu/design7/info.html) and [MPlayer](http://www.mplayerhq.hu/design7/info.html). It shares some features with the former projects while introducing many more.
 
