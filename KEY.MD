@@ -23,7 +23,8 @@ Keybindings
 | <kbd>SHIFT</kbd>+<kbd>ENTER</kbd> | Change Video Aspect Raion |
 |  |  |
 | **Keyboard Row F1 to F12** |  |
-| <kbd>F1</kbd> <kbd>F2</kbd> <kbd>F3</kbd> <kbd>F4</kbd> <kbd>F5</kbd> <kbd>F6</kbd> <kbd>F7</kbd> <kbd>F8</kbd> <kbd>F9</kbd> <kbd>F10</kbd> <kbd>F11</kbd> <kbd>F12</kbd> |  |
+| <kbd>F1</kbd> <kbd>F2</kbd> <kbd>F3</kbd> <kbd>F4</kbd> <kbd>F5</kbd> <kbd>F6</kbd> |  |
+| <kbd>F7</kbd> <kbd>F8</kbd> <kbd>F9</kbd> <kbd>F10</kbd> <kbd>F11</kbd> <kbd>F12</kbd> |  |
 | <kbd>F1</kbd> | Decrease Brightness |
 | <kbd>F2</kbd> | Increase Brightness |
 | <kbd>F3</kbd> | Decrease Contrast |
