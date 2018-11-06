@@ -7,8 +7,8 @@ Keybindings
 | <kbd>/</kbd> <kbd>*</kbd> <kbd>-</kbd> <kbd>+</kbd> <br/> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <br/> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd> <br/> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <br/> <kbd>0</kbd> <kbd>DEC</kbd> <kbd>ENTER</kbd> | **Keypad** |
 | <kbd>/</kbd> | Volume Down |
 | <kbd>*</kbd> | Volume Up |
-| <kbd>ALT</kbd>+<kbd>/</kbd> | -- |
-| <kbd>ALT</kbd>+<kbd>*</kbd> | -- |
+| <kbd>-</kbd> | Decrease A-V Delay |
+| <kbd>+</kbd> | Increase A-V Delay |
 | <kbd>KP0</kbd> | Control Video Size / Position |
 | <kbd>KP1</kbd> | Control Video Size / Position |
 | <kbd>KP2</kbd> | Control Video Size / Position |
@@ -22,10 +22,10 @@ Keybindings
 | <kbd>DEL</kbd> | Control Video Size / Position |
 | <kbd>ENTER</kbd> | Control Video Size / Position |
 |  |  |
-| <kbd>-</kbd> | Decrease A-V Delay |
-| <kbd>+</kbd> | Increase A-V Delay |
 | <kbd>CTRL</kbd>+<kbd>+</kbd> | Increase Sub Delay |
 | <kbd>CTRL</kbd>+<kbd>-</kbd> | Decrease Sub Delay |
+| <kbd>ALT</kbd>+<kbd>/</kbd> | -- |
+| <kbd>ALT</kbd>+<kbd>*</kbd> | -- |
 | <kbd>ALT</kbd>+<kbd>+</kbd> | Increase Sub Size Delay |
 | <kbd>ALT</kbd>+<kbd>-</kbd> | Decrease Sub Size Delay |
 | <kbd>ALT</kbd>+<kbd>ENTER</kbd> | Reset A-V, Sub Delay |
