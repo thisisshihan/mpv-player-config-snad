@@ -3,6 +3,14 @@ Keybindings
 
 |  |  |
 | ---: | --- |
+| <kbd>INS</kbd> <kbd>HOME</kbd> <kbd>PAGE UP</kbd><br/><kbd>DEL</kbd> <kbd>END</kbd> <kbd>PAGE DOWN</kbd> | **Keys** |
+| <kbd>INS</kbd> | -- |
+| <kbd>DEL</kbd> | -- |
+| <kbd>PAGE UP</kbd> | -- |
+| <kbd>PAGE DOWN</kbd> | BOSS KEY _(pause and minimize)_ |
+| <kbd>HOME</kbd> | -- |
+| <kbd>END</kbd> | -- |
+|  |  |
 | <kbd>↑</kbd><br/><kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> | **Arrow Keys** |
 | <kbd>→</kbd> | Foward 3s |
 | <kbd>←</kbd> | Backward 3s |
