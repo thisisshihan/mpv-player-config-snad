@@ -19,16 +19,16 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 -------------------------------------
 
 **Simple Interface**<br/>
-> ![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.interface.png)
+<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.interface.png)</kbd>
 ##
 **Advanced Playlist Manager**<br/>
-> _Show Playlist_ <kbd> P </kbd> / <kbd> TAB </kbd><br/>
-> _Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd><br/>
-![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.playlist.png)
+_Show Playlist_ <kbd> P </kbd> / <kbd> TAB </kbd><br/>
+_Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd><br/>
+<kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.playlist.png)</kbd>
 ##
 **Improved Video Filter for Best Video Experience**<br/>
-> _Apply Video Filter_ <kbd> V </kbd>
-![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.color.png)<br/>
+_Apply Video Filter_ <kbd> V </kbd>
+<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.color.png)</kbd>
 _1-without filter, 2-with filter_
 -------------------------------------
 
