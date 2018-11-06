@@ -19,7 +19,6 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 
 ### **A Complete key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.MD)
 -------------------------------------
-
 **Simple Interface**<br/>
 <kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.interface.png)</kbd>
 ##
