@@ -1,5 +1,5 @@
 -----------------------------------
-# A Complete Guide for Keybindings of [SNAD.mpv](https://github.com/thisisshihan/mpv-player-config-snad)
+# A Complete Guide for Keybindings of [SNAD.mpv](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/README.md)
 
 |  |  |
 | ---: | --- |
