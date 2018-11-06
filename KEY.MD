@@ -3,7 +3,6 @@ Keybindings
 
 | Key | Action |
 | ---: | --- |
-|  |  |
 | <kbd>/</kbd> <kbd>*</kbd> <kbd>-</kbd> <kbd>+</kbd> <br/> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <br/> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd> <br/> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <br/> <kbd>0</kbd> <kbd>DEC</kbd> <kbd>ENTER</kbd> | **Keypad** |
 | <kbd>/</kbd> | Volume Down |
 | <kbd>*</kbd> | Volume Up |
@@ -55,7 +54,9 @@ Keybindings
 | <kbd>SHIFT</kbd>+<kbd>KP9</kbd> | Decrease Hue |
 | <kbd>SHIFT</kbd>+<kbd>DEL</kbd> | Increase Hue |
 | <kbd>SHIFT</kbd>+<kbd>ENTER</kbd> | Change Video Aspect Raion |
-|  |  |
+
+| Key | Action |
+| ---: | --- |
 | <kbd>F1</kbd> <kbd>F2</kbd> <kbd>F3</kbd> <kbd>F4</kbd> <br/> <kbd>F5</kbd> <kbd>F6</kbd> <kbd>F7</kbd> <kbd>F8</kbd> <br/> <kbd>F9</kbd> <kbd>F10</kbd> <kbd>F11</kbd> <kbd>F12</kbd> | **Keyboard Row F1 to F12** |
 | <kbd>F1</kbd> | Decrease Brightness |
 | <kbd>F2</kbd> | Increase Brightness |
@@ -69,7 +70,9 @@ Keybindings
 | <kbd>F10</kbd> | Increase Hue |
 | <kbd>F11</kbd> | Reaet All Color (Brightness, Contr...) |
 | <kbd>F12</kbd> | Reset All Settings |
-|  |  |
+
+| Key | Action |
+| ---: | --- |
 | <kbd>~</kbd> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd>0</kbd> <kbd>-</kbd> <kbd>=</kbd> | **Keyboard Row** |
 | <kbd>1</kbd> | Reset Brightness(to change <kbd>F1</kbd> ,  <kbd>F2</kbd>) |
 | <kbd>2</kbd> | Reset Contrast(to change <kbd>F3</kbd> ,  <kbd>F4</kbd>) |
@@ -84,7 +87,9 @@ Keybindings
 | <kbd>_</kbd> | Decrease A-V Delay |
 | <kbd>=</kbd> | Increase A-V Delay |
 | <kbd>~</kbd> | Show Chapter List |
-|  |  |
+
+| Key | Action |
+| ---: | --- |
 | <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>I</kbd> <kbd>O</kbd> <kbd>P</kbd> <kbd>{</kbd> <kbd>}</kbd> | **Keyboard Row** |
 | <kbd>Q</kbd> | Save Video Position and Quit to Watch Later |
 | <kbd>W</kbd> | -- |
@@ -100,7 +105,9 @@ Keybindings
 | <kbd>[</kbd> | Add Play Speed |
 | <kbd>]</kbd> | Increase Play Speed |
 | <kbd>\</kbd> | Decrease Play Speed |
-|  |  |
+
+| Key | Action |
+| ---: | --- |
 | <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd> <kbd>G</kbd> <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>:</kbd> <kbd>"</kbd> | **Keyboard Row** |
 | <kbd>A</kbd> | Change Video Aspect Raion |
 | <kbd>S</kbd> | Save Screenshot to Desktop |
@@ -113,7 +120,9 @@ Keybindings
 | <kbd>L</kbd> | Enable / Disable Repeat Playlist |
 | <kbd>:</kbd> | Enable / Disable Repeat Current File |
 | <kbd>"</kbd> | Volume Up |
-|  |  |
+
+| Key | Action |
+| ---: | --- |
 | <kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> <kbd>V</kbd> <kbd>B</kbd> <kbd>N</kbd> <kbd>M</kbd> <kbd><</kbd> <kbd>></kbd> <kbd>?</kbd> | **Keyboard Row** |
 | <kbd>Z</kbd> | Enable / Disable Keep Aspect Ratio |
 | <kbd>X</kbd> | Enable / Disable Auto Crop |
