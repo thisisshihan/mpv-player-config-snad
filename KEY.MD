@@ -70,12 +70,12 @@ Keybindings
 | <kbd>F12</kbd> | Reset All Settings |
 |  |  |
 | <kbd>~</kbd> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd>0</kbd> <kbd>-</kbd> <kbd>=</kbd> | **Keyboard Row** |
-| <kbd>1</kbd> | Reset Brightness(to change <kbd>F1</kbd> ,  <kbd>F2</kbd>) |
-| <kbd>2</kbd> | Reset Contrast(to change <kbd>F3</kbd> ,  <kbd>F4</kbd>) |
-| <kbd>3</kbd> | Reset Gamma(to change <kbd>F5</kbd> ,  <kbd>F6</kbd>) |
-| <kbd>4</kbd> | Reset Saturation(to change <kbd>F7</kbd> ,  <kbd>F8</kbd>) |
-| <kbd>5</kbd> | Reset Hue(to change <kbd>F9</kbd> ,  <kbd>F10</kbd>) |
-| <kbd>6</kbd> | Reaet All Color (Brightness, Contr...) |
+| <kbd>1</kbd> | Reset Brightness _to change <kbd>F1</kbd> ,  <kbd>F2</kbd>_ |
+| <kbd>2</kbd> | Reset Contrast _to change <kbd>F3</kbd> ,  <kbd>F4</kbd>_ |
+| <kbd>3</kbd> | Reset Gamma _to change <kbd>F5</kbd> ,  <kbd>F6</kbd>_ |
+| <kbd>4</kbd> | Reset Saturation _to change <kbd>F7</kbd> ,  <kbd>F8</kbd>_ |
+| <kbd>5</kbd> | Reset Hue _to change <kbd>F9</kbd> ,  <kbd>F10</kbd>_ |
+| <kbd>6</kbd> | Reaet All Color _Brightness, Contr..._ |
 | <kbd>7</kbd> | -- |
 | <kbd>8</kbd> | -- |
 | <kbd>9</kbd> | -- |
