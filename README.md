@@ -23,11 +23,11 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 ##
 **Advanced Playlist Manager**<br/>
 _Show Playlist_ <kbd> P </kbd> / <kbd> TAB </kbd><br/>
-_Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd><br/>
+_Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd>[_`Complete key guide`_](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.MD)<br/>
 <kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.playlist.png)</kbd>
 ##
 **Improved Video Filter for Best Video Experience**<br/>
-_Apply Video Filter_ <kbd> V </kbd> _(Pic1-without filter, Pic2-with filter)_<br/>
+_Apply Video Filter_ <kbd> V </kbd> _(Pic1-without filter, Pic2-with filter)_[_`Complete key guide`_](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.MD)<br/>
 <kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.color.png)</kbd>
 
 -------------------------------------
