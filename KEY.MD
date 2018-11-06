@@ -21,39 +21,39 @@ Keybindings
 | <kbd>DEL</kbd> | Control Video Size / Position |
 | <kbd>ENTER</kbd> | Quit |
 |  |  |
-| <kbd>CTRL</kbd>+<kbd>+</kbd> | Increase Sub Delay |
-| <kbd>CTRL</kbd>+<kbd>-</kbd> | Decrease Sub Delay |
-| <kbd>ALT</kbd>+<kbd>/</kbd> | -- |
-| <kbd>ALT</kbd>+<kbd>*</kbd> | -- |
-| <kbd>ALT</kbd>+<kbd>+</kbd> | Increase Sub Size Delay |
-| <kbd>ALT</kbd>+<kbd>-</kbd> | Decrease Sub Size Delay |
-| <kbd>ALT</kbd>+<kbd>ENTER</kbd> | Reset A-V, Sub Delay |
+| <kbd>CTRL</kbd> + <kbd>+</kbd> | Increase Sub Delay |
+| <kbd>CTRL</kbd> + <kbd>-</kbd> | Decrease Sub Delay |
+| <kbd>ALT</kbd> + <kbd>/</kbd> | -- |
+| <kbd>ALT</kbd> + <kbd>*</kbd> | -- |
+| <kbd>ALT</kbd> + <kbd>+</kbd> | Increase Sub Size Delay |
+| <kbd>ALT</kbd> + <kbd>-</kbd> | Decrease Sub Size Delay |
+| <kbd>ALT</kbd> + <kbd>ENTER</kbd> | Reset A-V, Sub Delay |
 |  |  |
-| <kbd>CTRL</kbd>+<kbd>KP0</kbd> | Reaet All Color (Brightness, Contr...) |
-| <kbd>CTRL</kbd>+<kbd>KP1</kbd> | Decrease Brightness |
-| <kbd>CTRL</kbd>+<kbd>KP2</kbd> | Increase Brightness |
-| <kbd>CTRL</kbd>+<kbd>KP3</kbd> | Decrease Contrast |
-| <kbd>CTRL</kbd>+<kbd>KP4</kbd> | Increase Contrast |
-| <kbd>CTRL</kbd>+<kbd>KP5</kbd> | Decrease Gamma |
-| <kbd>CTRL</kbd>+<kbd>KP6</kbd> | Increase Gamma |
-| <kbd>CTRL</kbd>+<kbd>KP7</kbd> | Decrease Saturation |
-| <kbd>CTRL</kbd>+<kbd>KP8</kbd> | Increase Saturation |
-| <kbd>CTRL</kbd>+<kbd>KP9</kbd> | Decrease Hue |
-| <kbd>CTRL</kbd>+<kbd>DEL</kbd> | Increase Hue |
-| <kbd>CTRL</kbd>+<kbd>ENTER</kbd> | Rotate Video |
+| <kbd>CTRL</kbd> + <kbd>KP0</kbd> | Reaet All Color (Brightness, Contr...) |
+| <kbd>CTRL</kbd> + <kbd>KP1</kbd> | Decrease Brightness |
+| <kbd>CTRL</kbd> + <kbd>KP2</kbd> | Increase Brightness |
+| <kbd>CTRL</kbd> + <kbd>KP3</kbd> | Decrease Contrast |
+| <kbd>CTRL</kbd> + <kbd>KP4</kbd> | Increase Contrast |
+| <kbd>CTRL</kbd> + <kbd>KP5</kbd> | Decrease Gamma |
+| <kbd>CTRL</kbd> + <kbd>KP6</kbd> | Increase Gamma |
+| <kbd>CTRL</kbd> + <kbd>KP7</kbd> | Decrease Saturation |
+| <kbd>CTRL</kbd> + <kbd>KP8</kbd> | Increase Saturation |
+| <kbd>CTRL</kbd> + <kbd>KP9</kbd> | Decrease Hue |
+| <kbd>CTRL</kbd> + <kbd>DEL</kbd> | Increase Hue |
+| <kbd>CTRL</kbd> + <kbd>ENTER</kbd> | Rotate Video |
 |  |  |
-| <kbd>SHIFT</kbd>+<kbd>KP0</kbd> | Reaet All Color (Brightness, Contr...) |
-| <kbd>SHIFT</kbd>+<kbd>KP1</kbd> | Decrease Brightness |
-| <kbd>SHIFT</kbd>+<kbd>KP2</kbd> | Increase Brightness |
-| <kbd>SHIFT</kbd>+<kbd>KP3</kbd> | Decrease Contrast |
-| <kbd>SHIFT</kbd>+<kbd>KP4</kbd> | Increase Contrast |
-| <kbd>SHIFT</kbd>+<kbd>KP5</kbd> | Decrease Gamma |
-| <kbd>SHIFT</kbd>+<kbd>KP6</kbd> | Increase Gamma |
-| <kbd>SHIFT</kbd>+<kbd>KP7</kbd> | Decrease Saturation |
-| <kbd>SHIFT</kbd>+<kbd>KP8</kbd> | Increase Saturation |
-| <kbd>SHIFT</kbd>+<kbd>KP9</kbd> | Decrease Hue |
-| <kbd>SHIFT</kbd>+<kbd>DEL</kbd> | Increase Hue |
-| <kbd>SHIFT</kbd>+<kbd>ENTER</kbd> | Change Video Aspect Raion |
+| <kbd>SHIFT</kbd> + <kbd>KP0</kbd> | Reaet All Color (Brightness, Contr...) |
+| <kbd>SHIFT</kbd> + <kbd>KP1</kbd> | Decrease Brightness |
+| <kbd>SHIFT</kbd> + <kbd>KP2</kbd> | Increase Brightness |
+| <kbd>SHIFT</kbd> + <kbd>KP3</kbd> | Decrease Contrast |
+| <kbd>SHIFT</kbd> + <kbd>KP4</kbd> | Increase Contrast |
+| <kbd>SHIFT</kbd> + <kbd>KP5</kbd> | Decrease Gamma |
+| <kbd>SHIFT</kbd> + <kbd>KP6</kbd> | Increase Gamma |
+| <kbd>SHIFT</kbd> + <kbd>KP7</kbd> | Decrease Saturation |
+| <kbd>SHIFT</kbd> + <kbd>KP8</kbd> | Increase Saturation |
+| <kbd>SHIFT</kbd> + <kbd>KP9</kbd> | Decrease Hue |
+| <kbd>SHIFT</kbd> + <kbd>DEL</kbd> | Increase Hue |
+| <kbd>SHIFT</kbd> + <kbd>ENTER</kbd> | Change Video Aspect Raion |
 |  |  |
 | <kbd>F1</kbd> <kbd>F2</kbd> <kbd>F3</kbd> <kbd>F4</kbd> <br/> <kbd>F5</kbd> <kbd>F6</kbd> <kbd>F7</kbd> <kbd>F8</kbd> <br/> <kbd>F9</kbd> <kbd>F10</kbd> <kbd>F11</kbd> <kbd>F12</kbd> | **Keyboard Row F1 to F12** |
 | <kbd>F1</kbd> | Decrease Brightness |
@@ -94,8 +94,8 @@ Keybindings
 | <kbd>U</kbd> | -- |
 | <kbd>I</kbd> | Show the Progress |
 | <kbd>O</kbd> | Change OSD Visible to Always / Auto |
-| <kbd>CTRL</kbd>+<kbd>O</kbd> | Open File |
-| <kbd>CTRL</kbd>+<kbd>P</kbd> | Save Playlist |
+| <kbd>CTRL</kbd> + <kbd>O</kbd> | Open File |
+| <kbd>CTRL</kbd> + <kbd>P</kbd> | Save Playlist |
 | <kbd>[</kbd> | Add Play Speed |
 | <kbd>]</kbd> | Increase Play Speed |
 | <kbd>\</kbd> | Decrease Play Speed |
