@@ -27,9 +27,9 @@ _Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> 
 <kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.playlist.png)</kbd>
 ##
 **Improved Video Filter for Best Video Experience**<br/>
-_Apply Video Filter_ <kbd> V </kbd>
-<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.color.png)</kbd>
-_1-without filter, 2-with filter_
+_Apply Video Filter_ <kbd> V </kbd> _(Pic1-without filter, Pic2-with filter)_<br/>
+<kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.color.png)</kbd>
+
 -------------------------------------
 
 **Overview:**
