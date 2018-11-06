@@ -4,11 +4,7 @@ Keybindings
 | Key | Action |
 | ---: | --- |
 | **Keypad** |  |
-| <kbd>N</kbd> <kbd>/</kbd> <kbd>*</kbd> <kbd>-</kbd> |  |
-| <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd>+</kbd> |  |
-| <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd> |  |
-| <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>ENTER</kbd> |  |
-| <kbd>0</kbd> <kbd>DEC</kbd> |  |
+| <kbd>/</kbd> <kbd>*</kbd> <kbd>-</kbd> <kbd>+</kbd> <br/> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <br/> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd> <br/> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <br/> <kbd>0</kbd> <kbd>DEC</kbd> <kbd>ENTER</kbd> |  |
 | <kbd>SHIFT</kbd>+<kbd>KP0</kbd> | Reaet All Color (Brightness, Contr...) |
 | <kbd>SHIFT</kbd>+<kbd>KP1</kbd> | Decrease Brightness |
 | <kbd>SHIFT</kbd>+<kbd>KP2</kbd> | Increase Brightness |
@@ -23,8 +19,7 @@ Keybindings
 | <kbd>SHIFT</kbd>+<kbd>ENTER</kbd> | Change Video Aspect Raion |
 |  |  |
 | **Keyboard Row F1 to F12** |  |
-| <kbd>F1</kbd> <kbd>F2</kbd> <kbd>F3</kbd> <kbd>F4</kbd> <kbd>F5</kbd> <kbd>F6</kbd> |  |
-| <kbd>F7</kbd> <kbd>F8</kbd> <kbd>F9</kbd> <kbd>F10</kbd> <kbd>F11</kbd> <kbd>F12</kbd> |  |
+| <kbd>F1</kbd> <kbd>F2</kbd> <kbd>F3</kbd> <kbd>F4</kbd> <kbd>F5</kbd> <kbd>F6</kbd> <br/> <kbd>F7</kbd> <kbd>F8</kbd> <kbd>F9</kbd> <kbd>F10</kbd> <kbd>F11</kbd> <kbd>F12</kbd> |  |
 | <kbd>F1</kbd> | Decrease Brightness |
 | <kbd>F2</kbd> | Increase Brightness |
 | <kbd>F3</kbd> | Decrease Contrast |
