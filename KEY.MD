@@ -1,5 +1,5 @@
-Keybindings
-===========
+-----------------------------------
+# A Complete Guide for Keybindings of [SNAD.mpv](https://github.com/thisisshihan/mpv-player-config-snad)
 
 |  |  |
 | ---: | --- |
@@ -157,3 +157,5 @@ Keybindings
 | <kbd><</kbd> | Jump Previous item in Playlist |
 | <kbd>></kbd> | Jump Next item in Playlist |
 | <kbd>/</kbd> | Volume Down |
+
+#
