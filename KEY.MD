@@ -96,9 +96,9 @@ Keybindings
 | <kbd>O</kbd> | Change OSD Visible to Always / Auto |
 | <kbd>CTRL</kbd> + <kbd>O</kbd> | Open File |
 | <kbd>CTRL</kbd> + <kbd>P</kbd> | Save Playlist |
-| <kbd>[</kbd> | Add Play Speed |
-| <kbd>]</kbd> | Increase Play Speed |
-| <kbd>\</kbd> | Decrease Play Speed |
+| <kbd>[</kbd> | Increase Play Speed |
+| <kbd>]</kbd> | Decrease Play Speed |
+| <kbd>\|</kbd> | Reset Play Speed |
 |  |  |
 | <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd> <kbd>G</kbd> <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>:</kbd> <kbd>"</kbd> | **Keyboard Row** |
 | <kbd>A</kbd> | Change Video Aspect Raion |
