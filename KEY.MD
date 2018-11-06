@@ -5,6 +5,44 @@ Keybindings
 | ---: | --- |
 |  |  |
 | <kbd>/</kbd> <kbd>*</kbd> <kbd>-</kbd> <kbd>+</kbd> <br/> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <br/> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd> <br/> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <br/> <kbd>0</kbd> <kbd>DEC</kbd> <kbd>ENTER</kbd> | **Keypad** |
+| <kbd>/</kbd> | Volume Down |
+| <kbd>*</kbd> | Volume Up |
+| <kbd>ALT</kbd>+<kbd>/</kbd> | -- |
+| <kbd>ALT</kbd>+<kbd>*</kbd> | -- |
+| <kbd>KP0</kbd> | Control Video Size / Position |
+| <kbd>KP1</kbd> | Control Video Size / Position |
+| <kbd>KP2</kbd> | Control Video Size / Position |
+| <kbd>KP3</kbd> | Control Video Size / Position |
+| <kbd>KP4</kbd> | Control Video Size / Position |
+| <kbd>KP5</kbd> | Reset Video Size / Position |
+| <kbd>KP6</kbd> | Control Video Size / Position |
+| <kbd>KP7</kbd> | Control Video Size / Position |
+| <kbd>KP8</kbd> | Control Video Size / Position |
+| <kbd>KP9</kbd> | Control Video Size / Position |
+| <kbd>DEL</kbd> | Control Video Size / Position |
+| <kbd>ENTER</kbd> | Control Video Size / Position |
+|  |  |
+| <kbd>-</kbd> | Decrease A-V Delay |
+| <kbd>+</kbd> | Increase A-V Delay |
+| <kbd>CTRL</kbd>+<kbd>+</kbd> | Increase Sub Delay |
+| <kbd>CTRL</kbd>+<kbd>-</kbd> | Decrease Sub Delay |
+| <kbd>ALT</kbd>+<kbd>+</kbd> | Increase Sub Size Delay |
+| <kbd>ALT</kbd>+<kbd>-</kbd> | Decrease Sub Size Delay |
+| <kbd>ALT</kbd>+<kbd>ENTER</kbd> | Reset A-V, Sub Delay |
+|  |  |
+| <kbd>CTRL</kbd>+<kbd>KP0</kbd> | Reaet All Color (Brightness, Contr...) |
+| <kbd>CTRL</kbd>+<kbd>KP1</kbd> | Decrease Brightness |
+| <kbd>CTRL</kbd>+<kbd>KP2</kbd> | Increase Brightness |
+| <kbd>CTRL</kbd>+<kbd>KP3</kbd> | Decrease Contrast |
+| <kbd>CTRL</kbd>+<kbd>KP4</kbd> | Increase Contrast |
+| <kbd>CTRL</kbd>+<kbd>KP5</kbd> | Decrease Gamma |
+| <kbd>CTRL</kbd>+<kbd>KP6</kbd> | Increase Gamma |
+| <kbd>CTRL</kbd>+<kbd>KP7</kbd> | Decrease Saturation |
+| <kbd>CTRL</kbd>+<kbd>KP8</kbd> | Increase Saturation |
+| <kbd>CTRL</kbd>+<kbd>KP9</kbd> | Decrease Hue |
+| <kbd>CTRL</kbd>+<kbd>DEL</kbd> | Increase Hue |
+| <kbd>CTRL</kbd>+<kbd>ENTER</kbd> | Rotate Video |
+|  |  |
 | <kbd>SHIFT</kbd>+<kbd>KP0</kbd> | Reaet All Color (Brightness, Contr...) |
 | <kbd>SHIFT</kbd>+<kbd>KP1</kbd> | Decrease Brightness |
 | <kbd>SHIFT</kbd>+<kbd>KP2</kbd> | Increase Brightness |
@@ -49,12 +87,12 @@ Keybindings
 |  |  |
 | <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>I</kbd> <kbd>O</kbd> <kbd>P</kbd> <kbd>{</kbd> <kbd>}</kbd> | **Keyboard Row** |
 | <kbd>Q</kbd> | Save Video Position and Quit to Watch Later |
-| <kbd>W</kbd> | N/A |
-| <kbd>E</kbd> | N/A |
+| <kbd>W</kbd> | -- |
+| <kbd>E</kbd> | -- |
 | <kbd>R</kbd> | Rotate Video |
 | <kbd>T</kbd> | Enable / Disable Ontop |
-| <kbd>Y</kbd> | N/A |
-| <kbd>U</kbd> | N/A |
+| <kbd>Y</kbd> | -- |
+| <kbd>U</kbd> | -- |
 | <kbd>I</kbd> | Show the Progress |
 | <kbd>O</kbd> | Change OSD Visible to Always / Auto |
 | <kbd>CTRL</kbd>+<kbd>O</kbd> | Open File |
