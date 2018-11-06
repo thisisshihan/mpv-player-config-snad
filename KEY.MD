@@ -19,7 +19,7 @@ Keybindings
 | <kbd>KP8</kbd> | Control Video Size / Position |
 | <kbd>KP9</kbd> | Control Video Size / Position |
 | <kbd>DEL</kbd> | Control Video Size / Position |
-| <kbd>ENTER</kbd> | Control Video Size / Position |
+| <kbd>ENTER</kbd> | Quit |
 |  |  |
 | <kbd>CTRL</kbd>+<kbd>+</kbd> | Increase Sub Delay |
 | <kbd>CTRL</kbd>+<kbd>-</kbd> | Decrease Sub Delay |
