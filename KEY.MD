@@ -95,6 +95,7 @@ Keybindings
 | <kbd>I</kbd> | Show the Progress |
 | <kbd>O</kbd> | Change OSD Visible to Always / Auto |
 | <kbd>CTRL</kbd> + <kbd>O</kbd> | Open File |
+| <kbd>P</kbd> | Show Playlist |
 | <kbd>CTRL</kbd> + <kbd>P</kbd> | Save Playlist |
 | <kbd>[</kbd> | Increase Play Speed |
 | <kbd>]</kbd> | Decrease Play Speed |
