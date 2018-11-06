@@ -12,6 +12,7 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 * Config files by SNAD for Windows / ubuntu / linux / macos: [366KiB](https://goo.gl/7Mphpk) 
 
 ## Config For Windows:
+_**A Complete key guide -->**_ [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.MD)
 * Download this files as a [zip file](https://goo.gl/7Mphpk) and extract them to a folder.
 * copy extracted files to **`...AppData\Roaming\mpv`** _or_
 * create a folder as _`portable_config`_ in the folder where mpv.exe exist and,
