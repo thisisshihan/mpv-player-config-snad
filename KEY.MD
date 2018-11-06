@@ -6,7 +6,7 @@ Keybindings
 | <kbd>ESC</kbd> <kbd>TAB</kbd> <kbd>BACKSPACE</kbd><br/><kbd>ENTER</kbd> <kbd>SPACE</kbd> | **Keys** |
 | <kbd>TAB</kbd> | Show Playlist |
 | <kbd>TAB</kbd> | Show Playlist |
-| <kbd>SHIFT</kbd><kbd>ENTER</kbd> | Exit |
+| <kbd>ENTER</kbd> | Exit |
 | <kbd>SHIFT</kbd> + <kbd>ENTER</kbd> | Change Video Aspect Raion |
 | <kbd>CTRL</kbd> + <kbd>ENTER</kbd> | Rotate Video |
 | <kbd>BACKSPACE ←</kbd> | Reset All Settings |
