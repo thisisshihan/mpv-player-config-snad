@@ -3,6 +3,20 @@ Keybindings
 
 |  |  |
 | ---: | --- |
+| <kbd>↑</kbd><br/><kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> | **Arrow Keys** |
+| <kbd>→</kbd> | Foward 3s |
+| <kbd>←</kbd> | Backward 3s |
+| <kbd>↑</kbd> | Foward 6s |
+| <kbd>↓</kbd> | Backward 6s |
+| <kbd>CTRL</kbd> + <kbd>→</kbd> | Foward 30s |
+| <kbd>CTRL</kbd> + <kbd>←</kbd> | Backward 30s |
+| <kbd>CTRL</kbd> + <kbd>↑</kbd> | Foward 60s |
+| <kbd>CTRL</kbd> + <kbd>↓</kbd> | Backward 60s |
+| <kbd>SHIFT</kbd> + <kbd>→</kbd> | Foward 300s |
+| <kbd>SHIFT</kbd> + <kbd>←</kbd> | Backward 300s |
+| <kbd>SHIFT</kbd> + <kbd>↑</kbd> | Foward 600s |
+| <kbd>SHIFT</kbd> + <kbd>↓</kbd> | Backward 600s |
+|  |  |
 | <kbd>/</kbd> <kbd>*</kbd> <kbd>-</kbd> <kbd>+</kbd> <br/> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <br/> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd> <br/> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <br/> <kbd>0</kbd> <kbd>DEC</kbd> <kbd>ENTER</kbd> | **Keypad** |
 | <kbd>/</kbd> | Volume Down |
 | <kbd>*</kbd> | Volume Up |
