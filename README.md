@@ -17,7 +17,7 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 * create a folder as _`portable_config`_ in the folder where mpv.exe exist and,
 * copy extracted files to **`...portable_config`**
 
-### **A Complete key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.MD)
+### **A Complete key guide -->** [<kbd>key-guide</kbd>](../blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.MD)
 -------------------------------------
 **Simple Interface**<br/>
 <kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.interface.png)</kbd>
