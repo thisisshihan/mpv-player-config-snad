@@ -9,7 +9,7 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 * Windows beta channel official: [sourceforge.net](https://sourceforge.net/projects/mpv-player-windows/files)
 * Android stable official: [play.google.com](https://play.google.com/store/apps/details?id=is.xyz.mpv&hl=en)
 * Android test builds official: [github.com](https://github.com/mpv-android/mpv-android/releases)
-* Config files by SNAD for Windows / ubuntu / linux / macos: [366KiB](https://goo.gl/7Mphpk) 
+* Config files by SNAD for Windows / ubuntu / linux / macos: [SNAD.mpv](https://goo.gl/7Mphpk) 
 
 ## Config For Windows:
 * Download [_All Settings From Here_](https://goo.gl/7Mphpk) and extract them to a folder.
