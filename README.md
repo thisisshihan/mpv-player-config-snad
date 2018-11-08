@@ -22,6 +22,9 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 **Simple Interface**<br/>
 <kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.interface.png)</kbd>
 ##
+**Touchpad Gesture**<br/>
+<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/touchpadGesture.png)</kbd>
+##
 **Advanced Playlist Manager**<br/>
 _Show Playlist_ <kbd> P </kbd> / <kbd> TAB </kbd><br/>
 _Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd> <br/>_A Complete key guide -->_ [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.MD)<br/>
