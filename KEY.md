@@ -1,6 +1,13 @@
 -----------------------------------
 # A Complete Guide for Keybindings of [SNAD.mpv](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/README.md)
 
+##
+**Touchpad Gesture**<br/>
+<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/touchpadGesture.png)</kbd>
+
+##
+**Keyboard Control**
+
 |  |  |
 | ---: | --- |
 | <kbd>ESC</kbd> <kbd>TAB</kbd> <kbd>BACKSPACE</kbd><br/><kbd>ENTER</kbd> <kbd>SPACE</kbd> | **Keys** |
