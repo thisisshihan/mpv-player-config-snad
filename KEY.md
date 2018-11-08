@@ -3,7 +3,7 @@
 
 ##
 **Touchpad Gesture**<br/>
-<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/touchpadGesture.png)</kbd>
+![s2](https://github.com/thisisshihan/screenshots/blob/master/touchpadGesture2.png)
 
 ##
 **Keyboard Control**
