@@ -23,7 +23,7 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 <kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.interface.png)</kbd>
 ##
 **Touchpad Gesture**<br/>
-<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/touchpadGesture.png)</kbd>
+![s2](https://github.com/thisisshihan/screenshots/blob/master/touchpadGesture1.png)
 ##
 **Advanced Playlist Manager**<br/>
 _Show Playlist_ <kbd> P </kbd> / <kbd> TAB </kbd><br/>
