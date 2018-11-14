@@ -1,4 +1,5 @@
 -- this lua script written by snad
+-- this lua is a part of
 -- https://github.com/thisisshihan/mpv-player-config-snad
 
 
@@ -35,14 +36,12 @@ function unit(sizeoffile)
 end
 
 local settings = {
-   --set title of window with stripped name
-  set_title_stripped = true,
-  title_prefix1 = "S",
-  title_prefix2 = "A",
-  title_prefix5 = ".mpv ~ ",
-  title_prefix4 = "N",
-  title_suffix = " ",
-  title_prefix3 = "D",
+  --set title of window with stripped name
+  titleStripped = true,
+  titlePrefix1 = "SN",
+  titlePrefix2 = "AD",
+  titlePrefix3 = ".mpv ~ ",
+  titleSuffix = "",
 }
 
 function on_loaded()
@@ -54,10 +53,16 @@ function on_loaded()
   filewid = mp.get_property("width")
   filehig = mp.get_property("height")
   filesize = round_size(mp.get_property("file-size"))
-  prog = mp.get_property("osd-status-msg")
+  osdStatus = mp.get_property("osd-status-msg")
   filesizeunit = unit(mp.get_property("file-size"))
-  if settings.set_title_stripped then
-    mp.set_property("title", settings.title_prefix1..settings.title_prefix4..settings.title_prefix2..settings.title_prefix3..settings.title_prefix5.."["..plpos.."/"..plcou.."] "..filename.." ~ "..prog.." ~ ".."["..filewid.."x"..filehig.."] "..filesize..filesizeunit..settings.title_suffix)
+  if settings.titleStripped then
+    if settings.titlePrefix1 == "SN" and settings.titlePrefix2 == "AD" then
+      mp.set_property("title", settings.titlePrefix1..settings.titlePrefix2..settings.titlePrefix3.."["..plpos.."/"..plcou.."] "..filename.." ~ "..osdStatus.." ~ ".."["..filewid.."x"..filehig.."] ~ "..filesize..filesizeunit..settings.titleSuffix)
+    else
+      mp.set_property("title", "SNAD.mpv ~ "..filename)
+    end
+  else
+    mp.set_property("title", "SNAD.mpv ~ "..filename)
   end
 end
 
