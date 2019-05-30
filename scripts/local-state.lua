@@ -56,7 +56,7 @@ function on_loaded()
   osdStatus = mp.get_property("osd-status-msg")
   filesizeunit = unit(mp.get_property("file-size"))
   if settings.titleStripped then
-    mp.set_property("title", settings.titlePrefix1..settings.titlePrefix2..settings.titlePrefix3.."["..plpos.."/"..plcou.."] "..filename.." ~ "..osdStatus.." ~ ".."["..filewid.."x"..filehig.."] ~ "..filesize..filesizeunit..settings.titleSuffix)
+    mp.set_property("title", settings.titlePrefix1..settings.titlePrefix2..settings.titlePrefix3.."["..plpos.."/"..plcou.."] "..osdStatus.." ~ "..filename.." ~ ".."["..filewid.."x"..filehig.."] ~ "..filesize..filesizeunit..settings.titleSuffix)
   else
     mp.set_property("title", settings.titlePrefix1..settings.titlePrefix2..settings.titlePrefix3..filename)
   end
