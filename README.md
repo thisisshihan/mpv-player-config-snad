@@ -32,7 +32,7 @@ _Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> 
 <kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.playlist.png)</kbd>
 ##
 **Improved Video Filter for Best Video Experience**<br/>
-_Apply Video Filter_ <kbd> V </kbd> / <kbd> V </kbd> + <kbd> 1 -> 9 </kbd> <br/>_A Complete key guide -->_ [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)<br/>_(Pic1-without filter, Pic2-with filter)_<br/>
+_Apply Video Filter_ <kbd> V </kbd>, <kbd> CTRL </kbd> + <kbd> 1 -> 9 </kbd> <br/>_A Complete key guide -->_ [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)<br/>_(Pic1-without filter, Pic2-with filter)_<br/>
 <kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.color.png)</kbd>
 
 -------------------------------------
