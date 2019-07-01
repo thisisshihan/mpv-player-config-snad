@@ -229,7 +229,7 @@ function on_loaded()
     if playlist_visible then draw_playlist() end
   end
 
-  strippedname = stripfilename(mp.get_property('media-title'))
+  strippedname = '['..mp.get_property('playlist-pos-1')..'/'..mp.get_property('playlist-count')..'] '..stripfilename(mp.get_property('filename'))
   if settings.show_playlist_on_fileload == 2 then
     showplaylist()
   elseif settings.show_playlist_on_fileload == 1 then
