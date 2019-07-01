@@ -599,6 +599,25 @@ function jumptofile()
   end
 end
 
+function jumptofile2()
+  refresh_globals()
+  if plen == 0 then return end
+  tag = nil
+  if cursor ~= pos then
+    mp.set_property("playlist-pos", cursor)
+	toggle_playlist()
+  else
+    if cursor~=plen-1 then
+      cursor = cursor + 1
+	  toggle_playlist()
+    end
+    mp.commandv("playlist-next", "weak")
+  end
+  if not settings.show_playlist_on_fileload == 2 then
+    remove_keybinds()
+  end
+end
+
 --[=====[
 --Creates a playlist of all files in directory, will keep the order and position
 --For exaple, Folder has 12 files, you open the 5th file and run this, the remaining 7 are added behind the 5th file and prior 4 files before it
@@ -767,7 +786,7 @@ function add_keybinds()
   --mp.add_forced_key_binding('SPACE', 'tagcurrent', tagcurrent)
   mp.add_forced_key_binding('.', 'jumptofile1', jumptofile, "repeatable")
   mp.add_forced_key_binding('>', 'jumptofile2', jumptofile, "repeatable")
-  mp.add_forced_key_binding('SPACE', 'jumptofile3', jumptofile, "repeatable")
+  mp.add_forced_key_binding('ENTER', 'jumptofile3', jumptofile2, "repeatable")
   --mp.add_forced_key_binding('LEFT', 'removefile1', removefile, "repeatable")
   mp.add_forced_key_binding('DEL', 'removefile2', removefile, "repeatable")
   mp.add_forced_key_binding('s', 'shuffleplaylist1', shuffleplaylist, "repeatable")
