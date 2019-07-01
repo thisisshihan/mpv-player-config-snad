@@ -1,5 +1,5 @@
 -----------------------------------
-# SNAD.mpv for windows / ubuntu / linux / macos
+# snad.mpv for windows / ubuntu / linux / macos
 _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 
 ![https://mpv.io/](https://github.com/thisisshihan/screenshots/blob/master/mpv.icon256.png)
