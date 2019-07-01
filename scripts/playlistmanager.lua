@@ -70,7 +70,7 @@ local settings = {
   --2 shows playlist, 1 shows current file(filename strip applied) as osd text, 0 shows nothing
   --instead of using this you can also call script-message playlistmanager show playlist/filename
   --ex. KEY playlist-next ; script-message playlistmanager show playlist
-  show_playlist_on_fileload = 0,
+  show_playlist_on_fileload = 1,
 
   --sync cursor when file is loaded from outside reasons(file-ending, playlist-next shortcut etc.)
   --has the sideeffect of moving cursor if file happens to change when navigating
