@@ -123,15 +123,15 @@
 | <kbd>=</kbd> | Increase A-V Delay |
 | <kbd>~</kbd> | Show Chapter List |
 |  |  |
-| <kbd>CTRL</kbd> + <kbd>1</kbd> | Apply Color Filter (1) |
-| <kbd>CTRL</kbd> + <kbd>2</kbd> | Apply Color Filter (2) |
-| <kbd>CTRL</kbd> + <kbd>3</kbd> | Apply Color Filter (3) |
-| <kbd>CTRL</kbd> + <kbd>4</kbd> | Apply Color Filter (4) |
-| <kbd>CTRL</kbd> + <kbd>5</kbd> | Apply Color Filter (5) |
-| <kbd>CTRL</kbd> + <kbd>6</kbd> | Apply Color Filter (6) |
-| <kbd>CTRL</kbd> + <kbd>7</kbd> | Apply Color Filter (7) |
-| <kbd>CTRL</kbd> + <kbd>8</kbd> | Apply Color Filter (8) |
-| <kbd>CTRL</kbd> + <kbd>9</kbd> | Remove Color Filter |
+| <kbd>CTRL</kbd> + <kbd>1</kbd> | Apply Video Filter (1) |
+| <kbd>CTRL</kbd> + <kbd>2</kbd> | Apply Video Filter (2) |
+| <kbd>CTRL</kbd> + <kbd>3</kbd> | Apply Video Filter (3) |
+| <kbd>CTRL</kbd> + <kbd>4</kbd> | Apply Video Filter (4) |
+| <kbd>CTRL</kbd> + <kbd>5</kbd> | Apply Video Filter (5) |
+| <kbd>CTRL</kbd> + <kbd>6</kbd> | Apply Video Filter (6) |
+| <kbd>CTRL</kbd> + <kbd>7</kbd> | Apply Video Filter (7) |
+| <kbd>CTRL</kbd> + <kbd>8</kbd> | Apply Video Filter (8) |
+| <kbd>CTRL</kbd> + <kbd>9</kbd> | Remove Video Filter |
 |  |  |
 | <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>I</kbd> <kbd>O</kbd> <kbd>P</kbd> <kbd>{</kbd> <kbd>}</kbd> | **Keyboard Row** |
 | <kbd>Q</kbd> | Save Video Position and Quit to Watch Later |
