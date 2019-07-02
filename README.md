@@ -13,13 +13,13 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 
 ## Config For Windows:
 * Download [_All Settings From Here_](https://goo.gl/7Mphpk) and extract them to a folder.
-* copy / overwrite extracted files to **`...AppData\Roaming\mpv`** <br/>_or_
-* create a folder as _`portable_config`_ in the folder where mpv.exe exist and,
-* copy extracted files to **`...portable_config`**
+* copy / overwrite extracted files to **_`...AppData\Roaming\mpv`_** <br/>_or_
+* create a folder as **_`portable_config`_** in the folder where mpv.exe exist and,
+* copy extracted files to **_`...portable_config`_**
 
 ## Config For Linux:
 * Download [_All Settings From Here_](https://goo.gl/7Mphpk) and extract them to a folder.
-* copy / overwrite extracted files to **`...etc/mpv`**
+* copy / overwrite extracted files to **_`...etc/mpv`_** _(you need root access to this folder)_
 
 ### **Basic key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY_basic.md)
 ### **A Complete key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)
