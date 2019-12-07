@@ -5,7 +5,7 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 ![https://mpv.io/](https://github.com/thisisshihan/screenshots/blob/master/mpv.icon256.png)
 
 ## About mpv.snad:
-[mpv](https://mpv.io/).[snad](https://goo.gl/7Mphpk) is a set of config files to optimize your video experience when you watch videos using _[mpv](https://mpv.io/) player_
+[mpv.snad](https://goo.gl/7Mphpk) is a set of config files to optimize your video experience when you watch videos using _[mpv](https://mpv.io/) player_
 
 ## Downloads:
 * Windows / ubuntu / linux / macos / Android stable cahnnel official: [mpv.io](http://mpv.io/installation)
