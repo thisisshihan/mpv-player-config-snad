@@ -38,9 +38,9 @@ end
 local settings = {
   --set title of window with stripped name
   titleStripped = true,
-  titlePrefix1 = "sn",
-  titlePrefix2 = "ad",
-  titlePrefix3 = ".mpv ~ ",
+  titlePrefix1 = "mpv",
+  titlePrefix2 = ".sn",
+  titlePrefix3 = "ad ~ ",
   titleSuffix = "",
 }
 
