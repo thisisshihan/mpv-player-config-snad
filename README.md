@@ -39,7 +39,7 @@ _Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> 
 <kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.playlist.png)</kbd>
 ##
 **Visualizer**<br/>
-Visualizer for audios with no album-art or for onlline Radio
+A perfect visualizer for audios with no album-art or for Internet Radios
 <kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv_visualizer.PNG)</kbd>
 ##
 **Improved Video Filter for Best Video Experience**<br/>
