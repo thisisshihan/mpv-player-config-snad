@@ -1,5 +1,5 @@
 -----------------------------------
-# Basic Keybindings of [SNAD.mpv](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/README.md)
+# Basic Keybindings of [mpv.snad](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/README.md)
 
 ##
 **Touchpad Gesture** _(swipe with two finger)_<br/>
