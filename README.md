@@ -38,6 +38,10 @@ _Show Playlist_ <kbd> P </kbd> / <kbd> TAB </kbd><br/>
 _Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd> <br/>_A Complete key guide -->_ [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)<br/>
 <kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.playlist.png)</kbd>
 ##
+**Visualizer**<br/>
+Visualizer for audios with no album-art or for onlline Radio
+<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv_visualizer.PNG)</kbd>
+##
 **Improved Video Filter for Best Video Experience**<br/>
 _Apply Video Filter_ <kbd> V </kbd>, <kbd> CTRL </kbd> + <kbd> 1 -> 9 </kbd> <br/>_A Complete key guide -->_ [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)<br/>_(Pic1-without filter, Pic2-with filter)_<br/>
 <kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.color.png)</kbd>
