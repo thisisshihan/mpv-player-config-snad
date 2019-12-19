@@ -8,6 +8,9 @@ _[mpv](https://mpv.io/) a free, open source, and cross-platform media player_
 [mpv.snad](https://goo.gl/7Mphpk) is a set of config files to optimize your video experience when you watch videos using _[mpv](https://mpv.io/) player_
 
 ## Downloads:
+* Windows stable version: [mpv.snad](https://github.com/thisisshihan/mpv.snad)
+
+### Other Downloads
 * Windows / ubuntu / linux / macos / Android stable cahnnel official: [mpv.io](http://mpv.io/installation)
 * Windows beta channel official: [sourceforge.net](https://sourceforge.net/projects/mpv-player-windows/files)
 * Android stable official: [play.google.com](https://play.google.com/store/apps/details?id=is.xyz.mpv&hl=en)
