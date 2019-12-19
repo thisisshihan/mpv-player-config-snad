@@ -11,6 +11,11 @@ which is based on most known as _[mplayer](http://www.mplayerhq.hu)_ to optimize
 
 ## Downloads:
 * Latest Windows stable version v30 (this file contain all the config files): [mpv.snad](https://github.com/thisisshihan/mpv.snad/raw/master/mpv-0.30.0-x86_64.rar) _(2019-11-02)_
+#### How to install:
+* Extract the files.
+* Move the folder to required destination.
+* Go to **_`.../installer`_** folder
+* Run **_`mpv-install.bat`_** as admin
 
 #### Other Downloads
 * Windows / ubuntu / linux / macos / Android stable cahnnel official: [mpv.io](http://mpv.io/installation)
