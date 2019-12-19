@@ -11,7 +11,7 @@ which is based on most known as _[mplayer](http://www.mplayerhq.hu)_
 to optimize your video experience with most useful featuers. 
 
 ## Downloads:
-* Latest Windows stable version (this file contain all the config files): [mpv.snad](https://github.com/thisisshihan/mpv.snad/raw/master/mpv-0.30.0-x86_64.rar)
+* Latest Windows stable version v30 (this file contain all the config files): [mpv.snad](https://github.com/thisisshihan/mpv.snad/raw/master/mpv-0.30.0-x86_64.rar)
 
 #### Other Downloads
 * Windows / ubuntu / linux / macos / Android stable cahnnel official: [mpv.io](http://mpv.io/installation)
