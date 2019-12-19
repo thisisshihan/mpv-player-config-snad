@@ -6,9 +6,8 @@ _(This repository contain only stable version of windows)_
 ![https://mpv.io/](https://github.com/thisisshihan/screenshots/blob/master/mpv.icon256.png)
 
 ## About mpv.snad:
-_[mpv.snad](https://github.com/thisisshihan/mpv.snad)_ is a player which configed _[mpv](https://mpv.io/) player_
-which is based on most known as _[mplayer](http://www.mplayerhq.hu)_
-to optimize your video experience with most useful featuers. 
+_[mpv.snad](https://github.com/thisisshihan/mpv.snad)_ is a player which configured _[mpv](https://mpv.io/) player_
+which is based on most known as _[mplayer](http://www.mplayerhq.hu)_ to optimize your video experience with most useful featuers. (see complete _[key gide](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)_)
 
 ## Downloads:
 * Latest Windows stable version v30 (this file contain all the config files): [mpv.snad](https://github.com/thisisshihan/mpv.snad/raw/master/mpv-0.30.0-x86_64.rar)
