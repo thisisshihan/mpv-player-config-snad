@@ -1,5 +1,5 @@
 -----------------------------------
-# mpv.snad for windows / Linux / Mac
+# mpv.snad for [Windows](https://github.com/thisisshihan/mpv.snad) / Linux / Mac
 _[mpv](https://mpv.io/) a free, open source, and cross-platform media player._
 _(This repository contain only stable version of windows)_
 
