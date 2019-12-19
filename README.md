@@ -30,8 +30,8 @@ to optimize your video experience with most useful featuers.
 * Download [_All Settings From Here_](https://goo.gl/7Mphpk) and extract them to a folder.
 * copy / overwrite extracted files to **_`...etc/mpv`_** _(you need root access to this folder)_
 
-### **Basic key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY_basic.md)
-### **A Complete key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)
+#### **Basic key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY_basic.md)
+#### **A Complete key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)
 -------------------------------------
 **Simple Interface**<br/>
 <kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.interface.png)</kbd>
