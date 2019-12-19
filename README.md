@@ -10,7 +10,7 @@ _[mpv.snad](https://github.com/thisisshihan/mpv.snad)_ is a player which configu
 which is based on most known as _[mplayer](http://www.mplayerhq.hu)_ to optimize your video experience with most useful featuers. (see complete _[key gide](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)_)
 
 ## Downloads:
-* Latest Windows stable version v30 (this file contain all the config files): [mpv.snad](https://github.com/thisisshihan/mpv.snad/raw/master/mpv-0.30.0-x86_64.rar)
+* Latest Windows stable version v30 (this file contain all the config files): [mpv.snad](https://github.com/thisisshihan/mpv.snad/raw/master/mpv-0.30.0-x86_64.rar) _(2019-11-02)_
 
 #### Other Downloads
 * Windows / ubuntu / linux / macos / Android stable cahnnel official: [mpv.io](http://mpv.io/installation)
