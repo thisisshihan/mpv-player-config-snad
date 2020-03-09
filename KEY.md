@@ -24,8 +24,8 @@
 | <kbd>INS</kbd> | -- |
 | <kbd>DEL</kbd> | -- |
 | <kbd>PAGE UP</kbd> | -- |
-| <kbd>PAGE DOWN</kbd> | BOSS KEY _(pause and minimize)_ |
-| <kbd>HOME</kbd> | -- |
+| <kbd>PAGE DOWN</kbd> | Save Video Position and Quit to Watch Later |
+| <kbd>HOME</kbd> | Jump to 0s |
 | <kbd>END</kbd> | -- |
 |  |  |
 | <kbd>↑</kbd><br/><kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> | **Arrow Keys** |
