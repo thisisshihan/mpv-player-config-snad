@@ -41,8 +41,8 @@
 | <kbd>SHIFT</kbd> + <kbd>←</kbd> | Backward 300s |
 | <kbd>SHIFT</kbd> + <kbd>↑</kbd> | Foward 600s |
 | <kbd>SHIFT</kbd> + <kbd>↓</kbd> | Backward 600s |
-| <kbd>ALT</kbd> + <kbd>↑</kbd> | Subtitle Position Up |
-| <kbd>ALT</kbd> + <kbd>↓</kbd> | Subtitle Position Down |
+| <kbd>ALT</kbd> + <kbd>↑</kbd> | Sub Position Up |
+| <kbd>ALT</kbd> + <kbd>↓</kbd> | Sub Position Down |
 |  |  |
 | <kbd>/</kbd> <kbd>*</kbd> <kbd>-</kbd> <kbd>+</kbd> <br/> <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <br/> <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd> <br/> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <br/> <kbd>0</kbd> <kbd>DEC</kbd> <kbd>ENTER</kbd> | **Keypad** |
 | <kbd>/</kbd> | Volume Down |
@@ -64,8 +64,8 @@
 |  |  |
 | <kbd>CTRL</kbd> + <kbd>+</kbd> | Increase Sub Delay |
 | <kbd>CTRL</kbd> + <kbd>-</kbd> | Decrease Sub Delay |
-| <kbd>ALT</kbd> + <kbd>/</kbd> | Subtitle Position Up |
-| <kbd>ALT</kbd> + <kbd>*</kbd> | Subtitle Position Down |
+| <kbd>ALT</kbd> + <kbd>/</kbd> | Sub Position Up |
+| <kbd>ALT</kbd> + <kbd>*</kbd> | Sub Position Down |
 | <kbd>ALT</kbd> + <kbd>+</kbd> | Increase Sub Size |
 | <kbd>ALT</kbd> + <kbd>-</kbd> | Decrease Sub Size |
 | <kbd>ALT</kbd> + <kbd>ENTER</kbd> | Reset A-V, Sub Delay |
