@@ -64,8 +64,8 @@
 | <kbd>CTRL</kbd> + <kbd>-</kbd> | Decrease Sub Delay |
 | <kbd>ALT</kbd> + <kbd>/</kbd> | -- |
 | <kbd>ALT</kbd> + <kbd>*</kbd> | -- |
-| <kbd>ALT</kbd> + <kbd>+</kbd> | Increase Sub Size Delay |
-| <kbd>ALT</kbd> + <kbd>-</kbd> | Decrease Sub Size Delay |
+| <kbd>ALT</kbd> + <kbd>+</kbd> | Increase Sub Size |
+| <kbd>ALT</kbd> + <kbd>-</kbd> | Decrease Sub Size |
 | <kbd>ALT</kbd> + <kbd>ENTER</kbd> | Reset A-V, Sub Delay |
 |  |  |
 | <kbd>CTRL</kbd> + <kbd>KP0</kbd> | Reaet All Color (Brightness, Contr...) |
