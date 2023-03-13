@@ -154,6 +154,7 @@
 |  |  |
 | <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd> <kbd>G</kbd> <kbd>H</kbd> <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>:</kbd> <kbd>"</kbd> | **Keyboard Row** |
 | <kbd>A</kbd> | Change Video Aspect Raion |
+| <kbd>CTRL</kbd> + <kbd>A</kbd> | AMD FidelityFX FSR 1.0 |
 | <kbd>S</kbd> | Save Screenshot to Desktop |
 | <kbd>D</kbd> | Enable / Disable DeInterlace |
 | <kbd>F</kbd> | Change Full Screen / Windowed Mode |
@@ -167,11 +168,13 @@
 |  |  |
 | <kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> <kbd>V</kbd> <kbd>B</kbd> <kbd>N</kbd> <kbd>M</kbd> <kbd><</kbd> <kbd>></kbd> <kbd>?</kbd> | **Keyboard Row** |
 | <kbd>Z</kbd> | Enable / Disable Keep Aspect Ratio |
+| <kbd>CTRL</kbd> + <kbd>Z</kbd> | FSR/NIS Cleared |
 | <kbd>X</kbd> | Enable / Disable Auto Crop |
 | <kbd>C</kbd> | Crop |
 | <kbd>V</kbd> | Enable / Disable Color Filters |
 | <kbd>B</kbd> | Enable / Disable Border of Player in Windowed mode |
 | <kbd>N</kbd> | Enable / Disable "ASS" Sub Style |
+| <kbd>CTRL</kbd> + <kbd>N</kbd> | NVIDIA Image Scaling |
 | <kbd>M</kbd> | Enable / Disable Mute |
 | <kbd><</kbd> | Jump Previous item in Playlist |
 | <kbd>></kbd> | Jump Next item in Playlist |
