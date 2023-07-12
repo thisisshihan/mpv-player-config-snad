@@ -9,8 +9,7 @@ _(This repository contain only stable version of windows)_
 _[mpv.snad](https://github.com/thisisshihan/mpv.snad)_ is a player which configured _[mpv](https://mpv.io/) player_
 which is based on most known as _[mplayer](http://www.mplayerhq.hu)_ to optimize your video experience with most useful featuers. (see complete _[key gide](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)_)
 
-## Downloads:
-#### Latest Windows Version:
+#### Download Latest Windows Version:
 * Download the latest version from sourceforge.net [mpv.snad](https://sourceforge.net/projects/mpv-snad/files/) (this file contain all the config files) 
 * _(AMD FSR and NVIDIA Image Scaling added (CTRL+A/N/Z) added to v35.1 +)_
 
