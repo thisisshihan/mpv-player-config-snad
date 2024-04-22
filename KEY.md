@@ -137,7 +137,7 @@
 |  |  |
 | <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>I</kbd> <kbd>O</kbd> <kbd>P</kbd> <kbd>{</kbd> <kbd>}</kbd> | **Keyboard Row** |
 | <kbd>Q</kbd> | Save Video Position and Quit to Watch Later |
-| <kbd>W</kbd> | -- |
+| <kbd>W</kbd> | Show System Clock |
 | <kbd>E</kbd> | -- |
 | <kbd>R</kbd> | Rotate Video |
 | <kbd>T</kbd> | Enable / Disable Ontop |
