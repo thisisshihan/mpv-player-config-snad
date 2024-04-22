@@ -27,7 +27,7 @@ local options = {
     -- Whether to automatically apply crop at the start of playback. If you
     -- don't want to crop automatically, add
     -- script-opts-append=autocrop-auto=no to mpv.conf.
-    auto = true,
+    auto = false,
     -- Delay before starting crop in auto mode. You can try to increase this
     -- value to avoid dark scenes or fade ins at beginning. Automatic cropping
     -- will not occur if the value is larger than the remaining playback time.
