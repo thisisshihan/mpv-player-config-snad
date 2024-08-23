@@ -42,7 +42,7 @@ o = {
     additional_audio_exts = "",
     ignore_hidden = true,
     same_type = false,
-    directory_mode = "auto"
+    directory_mode = "ignore"
 }
 options.read_options(o, nil, function(list)
     split_option_exts(list.additional_video_exts, list.additional_audio_exts, list.additional_image_exts)
