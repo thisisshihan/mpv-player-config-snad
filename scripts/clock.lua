@@ -37,7 +37,7 @@ function OSDClock:_show_clock()
     -- Show wall clock on bottom left corner
     local osd_w, osd_h, aspect = mp.get_osd_size()
 
-    local scale = 1.5
+    local scale = 1
     local fontsize = tonumber(mp.get_property("options/osd-font-size")) / scale
         fontsize = math.floor(fontsize)
     -- msg.info(fontsize)
