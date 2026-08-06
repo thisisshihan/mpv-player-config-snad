@@ -40,15 +40,14 @@ which is based on most known as _[mplayer](http://www.mplayerhq.hu)_ to optimize
 #### **A Complete key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)
 -------------------------------------
 **Simple Interface**<br/>
-<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.interface.png)</kbd>
+<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.interface2.png)</kbd>
 ##
 **Touchpad Gesture**<br/>
 ![s2](https://github.com/thisisshihan/screenshots/blob/master/touchpadGesture2.png)
 ##
 **Advanced Playlist Manager**<br/>
-_Show Playlist_ <kbd> P </kbd> / <kbd> TAB </kbd><br/>
 _Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd> <br/>_A Complete key guide -->_ [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)<br/>
-<kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.adv.playlist.png)</kbd>
+<kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.playlist.png)</kbd>
 ##
 **Visualizer**<br/>
 A perfect visualizer for audios with no album-art or for Internet Radios
