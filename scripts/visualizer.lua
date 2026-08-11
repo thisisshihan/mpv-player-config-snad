@@ -87,7 +87,19 @@ local function get_visualizer(name, quality)
         local axis_h = math.ceil(w * 12 / 1920) * 4
 
         return "[aid1] asplit [ao]," ..
-            "afifo, aformat     = channel_layouts = stereo," ..
+            -- NOTE: the "afifo," buffering stage that used to sit here has
+            -- been removed. It existed as a workaround for an old ffmpeg
+            -- bug where asplit-based branching graphs could deadlock
+            -- without an explicit buffer between branches; modern ffmpeg
+            -- schedules this automatically, and some recent builds have
+            -- dropped the "afifo" filter entirely, which made every
+            -- audio-only file fail immediately with:
+            --   AVFilterGraph: No such filter: 'afifo'
+            --   AVFilterGraph: Error creating filters
+            -- Dropping it here is a straight removal, not a substitution -
+            -- aformat still receives the same signal, just without an
+            -- explicit (and no longer necessary) buffering node in front.
+            "aformat     = channel_layouts = stereo," ..
             "firequalizer       =" ..
                 "gain           = '1.4884e8 * f*f*f / (f*f + 424.36) / (f*f + 1.4884e8) / sqrt(f*f + 25122.25)':" ..
                 "scale          = linlin:" ..
@@ -120,7 +132,11 @@ local function get_visualizer(name, quality)
             "[v0][v1] vstack [vo]"
 
     elseif name == "off" then
-        return "[aid1] afifo [ao]; [vid1] fifo [vo]"
+        -- same fix as above: "afifo" replaced with "anull" (a true no-op
+        -- passthrough filter, guaranteed to exist) since this was only
+        -- ever being used here as an identity/passthrough node, not for
+        -- its buffering behavior
+        return "[aid1] anull [ao]; [vid1] fifo [vo]"
     end
 
     msg.log("error", "invalid visualizer name")
