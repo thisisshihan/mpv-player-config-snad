@@ -5,8 +5,7 @@
 --[[
     podcast.lua - RSS Podcast Feed Reader for mpv
     ------------------------------------------------
-    Author: snad
-
+    Author: (generated for snad's mpv config)
 
     WHAT IT DOES
     - Drag & drop (or open with mpv) a .pcst or .snad file that
@@ -815,8 +814,23 @@ mp.add_hook("on_load", 50, function()
     -- which is not reliably picked up here for the *upcoming* file and
     -- would otherwise require manually tracking/clearing it ourselves.
     local offset = url_to_start[path]
-    if offset and offset > 0 then
-        mp.set_property("file-local-options/start", tostring(offset))
+    if offset ~= nil then
+        if offset > 0 then
+            mp.set_property("file-local-options/start", tostring(offset))
+        end
+
+        -- WORKAROUND: some external setups (audio-visualizer profiles via
+        -- auto_profiles.lua or an mpv.conf [audio-file] profile, etc.)
+        -- apply a "lavfi-complex" filter graph to audio-only files. If
+        -- that graph references a filter unavailable in the current
+        -- ffmpeg build, playback fails immediately with "AVFilterGraph:
+        -- Error creating filters" and the track gets skipped - this has
+        -- nothing to do with the podcast feed itself and would affect
+        -- any audio-only file. Force-clearing it for our own episode
+        -- URLs sidesteps that regardless of what's misconfigured
+        -- elsewhere, at the cost of not showing that visualizer for
+        -- podcast episodes specifically.
+        mp.set_property("file-local-options/lavfi-complex", "")
     end
 
     -- Skip yt-dlp entirely for our own episode URLs by default (see the
