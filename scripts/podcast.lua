@@ -1,11 +1,7 @@
--- this lua script written by snad
--- this lua is a part of
--- https://github.com/thisisshihan/mpv-player-config-snad
-
 --[[
     podcast.lua - RSS Podcast Feed Reader for mpv
     ------------------------------------------------
-    Author: snad
+    Author: (generated for snad's mpv config)
 
     WHAT IT DOES
     - Drag & drop (or open with mpv) a .pcst or .snad file that
@@ -39,8 +35,8 @@
 
     USAGE
     - Make a text file, e.g. feeds.pcst (or feeds.snad), containing:
-        https://snad.fm/shows/snad-on-demand/playlists/podcast.rss
-    - Drag that file onto the mpv window (or run: mpv.exe feeds.txt)
+        https://omny.fm/shows/elvis-duran-and-the-morning-show-on-demand/playlists/podcast.rss
+    - Drag that file onto the mpv window (or run: mpv.exe feeds.pcst)
       The mpv window opens instantly with a dark "loading" screen while
       the feed downloads in the background, then swaps in the episodes
       once ready - it no longer waits until the feed is fully loaded
@@ -48,7 +44,7 @@
     - Press ALT+P to open the podcast episode menu.
       Inside the menu: UP/DOWN (or K/J) to move, ENTER to play, ESC to close.
 
-    FILTERING EPISODES (feeds.txt syntax)
+    FILTERING EPISODES (feeds.pcst syntax)
     - Lines starting with "#" are comments (ignored).
     - A line starting with "filter:" (alias "include:") sets a list of
       keywords - only episodes whose TITLE contains at least one of them
@@ -66,11 +62,11 @@
           https://example.com/feed.rss | filter=keyword1, keyword2
           https://example.com/feed.rss | exclude=ads, promo
 
-      Example feeds.txt:
+      Example feeds.pcst:
         # only full-show episodes from Elvis Duran
         filter: FULL_SHOW, full show
         exclude: promo, ad break
-        https://snad.fm/shows/snad-on-demand/playlists/podcast.rss
+        https://omny.fm/shows/elvis-duran-and-the-morning-show-on-demand/playlists/podcast.rss
 
         # a second feed with no filtering (clear the sticky filters first)
         filter:
@@ -92,7 +88,7 @@
 
       Example:
         start: 180
-        https://snad.fm/shows/snad-on-demand/playlists/podcast.rss
+        https://omny.fm/shows/elvis-duran-and-the-morning-show-on-demand/playlists/podcast.rss
 
         start: 0
         https://example.com/another-podcast.rss | start=45
@@ -121,7 +117,7 @@
         https://example.com/feed-that-needs-extraction.rss
 
         ytdl: no
-        https://snad.fm/shows/snad-on-demand/playlists/podcast.rss
+        https://omny.fm/shows/elvis-duran-and-the-morning-show-on-demand/playlists/podcast.rss
 
     REMOVING DUPLICATE EPISODES (remove-duplicates: directive)
     - A line starting with "remove-duplicates:" (alias "dedupe:") drops
@@ -136,7 +132,7 @@
 
       Example:
         remove-duplicates: yes
-        https://snad.fm/shows/snad-on-demand/playlists/podcast.rss
+        https://omny.fm/shows/elvis-duran-and-the-morning-show-on-demand/playlists/podcast.rss
 
     NOTES ON input.conf
     - This script does NOT bind any keys itself. It only registers the
@@ -305,14 +301,43 @@ end
 -- possible future synchronous uses, not used by the main load path)
 ----------------------------------------------------------------------
 
+-- Shared curl args. --compressed asks for (and transparently decompresses)
+-- gzip/deflate/br - some ad-tech-backed podcast CDNs (e.g. AdsWizz-hosted
+-- Simplecast feeds) serve compressed responses by default; without this
+-- flag we'd try to regex-parse raw compressed bytes and silently fail
+-- with "no items found". The browser-like UA and Accept header also
+-- help avoid being blocked by hosts that filter out obvious bot/script
+-- user agents - virtually all podcast apps spoof a normal UA for exactly
+-- this reason.
+local function curl_args(url)
+    return {
+        "curl", "-s", "-L", "--compressed", "--max-time", CURL_TIMEOUT,
+        "-A", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "-H", "Accept: application/rss+xml, application/xml, text/xml, */*",
+        url,
+    }
+end
+
+-- Logs a short, sanitized preview of a failed/empty response so the
+-- debug log actually explains WHY a feed failed (blocked, compressed,
+-- redirected to an HTML page, etc.) instead of just "no items found".
+local function log_response_preview(url, body)
+    if not body or body == "" then
+        msg.warn("[podcast] empty response body for " .. url)
+        return
+    end
+    local preview = body:sub(1, 150):gsub("[\r\n]+", " "):gsub("[^\32-\126]", "?")
+    msg.warn(string.format("[podcast] unexpected response for %s (%d bytes): %s",
+        url, #body, preview))
+end
+
 local function http_get(url)
     local res = mp.command_native({
         name = "subprocess",
         capture_stdout = true,
         capture_stderr = true,
         playback_only = false,
-        args = { "curl", "-s", "-L", "--max-time", CURL_TIMEOUT,
-                 "-A", "Mozilla/5.0 (mpv-podcast-reader)", url },
+        args = curl_args(url),
     })
     if not res then
         msg.error("curl: failed to run subprocess")
@@ -341,8 +366,7 @@ local function http_get_async(url, callback)
         capture_stdout = true,
         capture_stderr = true,
         playback_only = false,
-        args = { "curl", "-s", "-L", "--max-time", CURL_TIMEOUT,
-                 "-A", "Mozilla/5.0 (mpv-podcast-reader)", url },
+        args = curl_args(url),
     }, function(success, res, err)
         if not success or not res then
             msg.error("curl async: failed to run subprocess for " .. url .. " -- " .. tostring(err))
@@ -422,6 +446,11 @@ local function parse_feed(xml, feed_url)
     end
 
     if #items == 0 then
+        -- log a preview of what we actually got - makes it possible to
+        -- tell at a glance whether the host blocked us, redirected to an
+        -- HTML page, sent something unexpected, etc., instead of just
+        -- "no items found" with no further clue
+        log_response_preview(feed_url, xml)
         return nil, "no playable <enclosure> items found in feed"
     end
 
