@@ -1,13 +1,11 @@
 -----------------------------------
 # mpv.snad for [Windows](https://github.com/thisisshihan/mpv.snad) / Linux / Mac
 _[mpv](https://mpv.io/) a free, open source, and cross-platform media player._
-_(This repository contain only stable version of windows)_
 
 ![https://mpv.io/](https://github.com/thisisshihan/screenshots/blob/master/mpv.icon256.png)
 
 ## About mpv.snad:
-_[mpv.snad](https://github.com/thisisshihan/mpv.snad)_ is a player which configured _[mpv](https://mpv.io/) player_
-which is based on most known as _[mplayer](http://www.mplayerhq.hu)_ to optimize your video experience with most useful featuers. (see complete _[key gide](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)_)
+_(This repository contain optimized configs for mpv player focused on fast, efficient & minimalist look. No bs scripts which will reduce speed of loading/opening a file.)_
 
 #### Download Latest Windows Version:
 * Download the latest version from sourceforge.net [mpv.snad](https://sourceforge.net/projects/mpv-snad/files/) (this file contain all the config files) 
@@ -48,6 +46,47 @@ which is based on most known as _[mplayer](http://www.mplayerhq.hu)_ to optimize
 **Advanced Playlist Manager**<br/>
 _Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd> <br/>_A Complete key guide -->_ [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)<br/>
 <kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.playlist.png)</kbd>
+##
+**Podcast RSS Feed Support**<br/>
+_Podcast Menu_ <kbd> ALT </kbd> + <kbd>P</kbd>
+<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/Podcast.png)</kbd>
+<details>
+<summary>Sample format of podcast feed (.pcst/.snad) file</summary>
+# Podcast feed list for podcast.lua
+# One RSS feed URL per line. Lines starting with # are ignored.
+# Drag the feed.pcst file onto the mpv window (or open the feed.pcst file with mpv.exe)
+#
+# FILTERING (optional):
+#   filter: keyword1, keyword2   -> only load episodes whose title
+#                                    contains at least one keyword
+#   exclude: keyword1, keyword2  -> skip episodes whose title contains
+#                                    any of these keywords
+#
+# REMOVE DUPLICATE TITLES (optional, off by default):
+#   remove-duplicates: yes       -> drop episodes with a title already
+#                                   seen earlier in this load
+#
+# SKIP INTRO / ADS (optional):
+#   start: 180         -> start every episode below 180s in
+#   start: 3:00        -> same thing, mm:ss format also accepted
+#   start: 0           -> turn it back off
+#
+# YT-DLP (optional, off by default):
+#   ytdl: yes          -> allow yt-dlp for feeds below (rarely needed)
+#   ytdl: no           -> back to default (mpv opens the file directly)
+#
+# All of the above are "sticky" - they apply to every feed URL below
+# them until changed again. You can also set any of them inline for a
+# single feed only:
+# https://example.com/feed.rss | filter=keyword1, keyword2 | start=45
+
+filter: full
+exclude: promo, ad break
+remove-duplicates: yes
+start: 3:00
+https://snad.fm/shows/snad-on-demand/playlists/podcast
+</details>
+
 ##
 **Visualizer**<br/>
 A perfect visualizer for audios with no album-art or for Internet Radios
