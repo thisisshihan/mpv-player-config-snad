@@ -26,6 +26,16 @@
       ytdl: directive below). It's only used if you explicitly turn it
       back on for a specific feed with "ytdl: yes".
 
+    EPISODE CACHING
+    - Episodes loaded through this script are cached whole (up to 512MB
+      via mpv's own built-in demuxer cache, not a separate downloaded
+      file) as they play - both ahead of your current position AND
+      behind it, so once an episode has fully buffered, playback keeps
+      going even if your connection drops, and seeking backward to
+      anything already played is instant instead of re-fetching over
+      the network. This isn't configurable per feed - it's applied
+      automatically to every episode this script loads.
+
     [WORKAROUND] TLS VERIFICATION IS DISABLED
     - This script currently disables TLS certificate verification for all
       https streams mpv opens directly (mpv-level libcurl networking, not
@@ -39,7 +49,7 @@
 
     USAGE
     - Make a text file, e.g. feeds.pcst (or feeds.snad), containing:
-        https://snad.fm/shows/snad-on-demand/playlists/podcast.rss
+        https://example.com/shows/sample-podcast/feed.rss
     - Drag that file onto the mpv window (or run: mpv.exe feeds.pcst)
       The mpv window opens instantly with a dark "loading" screen while
       the feed downloads in the background, then swaps in the episodes
@@ -67,10 +77,10 @@
           https://example.com/feed.rss | exclude=ads, promo
 
       Example feeds.pcst:
-        # only full-show episodes from podcast
+        # only full-show episodes
         filter: FULL_SHOW, full show
         exclude: promo, ad break
-        https://snad.fm/shows/snad-on-demand/playlists/podcast.rss
+        https://example.com/shows/sample-podcast/feed.rss
 
         # a second feed with no filtering (clear the sticky filters first)
         filter:
@@ -92,7 +102,7 @@
 
       Example:
         start: 180
-        https://snad.fm/shows/snad-on-demand/playlists/podcast.rss
+        https://example.com/shows/sample-podcast/feed.rss
 
         start: 0
         https://example.com/another-podcast.rss | start=45
@@ -121,7 +131,7 @@
         https://example.com/feed-that-needs-extraction.rss
 
         ytdl: no
-        https://snad.fm/shows/snad-on-demand/playlists/podcast.rss
+        https://example.com/shows/sample-podcast/feed.rss
 
     REMOVING DUPLICATE EPISODES (remove-duplicates: directive)
     - A line starting with "remove-duplicates:" (alias "dedupe:") drops
@@ -136,7 +146,7 @@
 
       Example:
         remove-duplicates: yes
-        https://snad.fm/shows/snad-on-demand/playlists/podcast.rss
+        https://example.com/shows/sample-podcast/feed.rss
 
     NOTES ON input.conf
     - This script does NOT bind any keys itself. It only registers the
@@ -831,6 +841,25 @@ mp.add_hook("on_load", 50, function()
         -- elsewhere, at the cost of not showing that visualizer for
         -- podcast episodes specifically.
         mp.set_property("file-local-options/lavfi-complex", "")
+
+        -- Cache the WHOLE episode (not just a small look-ahead buffer)
+        -- while it plays, using mpv's own built-in demuxer cache -
+        -- nothing external, no extra disk files to manage. Podcast
+        -- episodes are audio-only and typically well under 200MB even
+        -- for multi-hour shows, so holding an entire episode in mpv's
+        -- cache is cheap. Practical effect: once buffered, a flaky
+        -- connection won't interrupt playback, and seeking backward to
+        -- anything already played is instant instead of re-fetching -
+        -- demuxer-max-bytes controls how far AHEAD it buffers,
+        -- demuxer-max-back-bytes controls how much already-played
+        -- content it's allowed to keep BEHIND the current position, so
+        -- both need to be large for the whole file to stay cached
+        -- start-to-finish rather than trimming the beginning as you
+        -- play through it.
+        local EPISODE_CACHE_BYTES = "512MiB"
+        mp.set_property("file-local-options/cache", "yes")
+        mp.set_property("file-local-options/demuxer-max-bytes", EPISODE_CACHE_BYTES)
+        mp.set_property("file-local-options/demuxer-max-back-bytes", EPISODE_CACHE_BYTES)
     end
 
     -- Skip yt-dlp entirely for our own episode URLs by default (see the
@@ -963,8 +992,6 @@ local function podcast_toggle()
     end
 end
 
--- This matches the existing binding already present in this user's
--- input.conf:   alt+p script-binding podcast_toggle
 mp.add_key_binding(nil, "podcast_toggle", podcast_toggle)
 
 msg.info("podcast.lua loaded - drag & drop a .pcst/.snad feed file, ALT+P to open the menu")
