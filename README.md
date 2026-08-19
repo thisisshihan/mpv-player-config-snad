@@ -1,71 +1,115 @@
 -----------------------------------
-# mpv.snad for [Windows](https://github.com/thisisshihan/mpv.snad) / Linux / Mac
-_[mpv](https://mpv.io/) a free, open source, and cross-platform media player._
-
-![https://mpv.io/](https://github.com/thisisshihan/screenshots/blob/master/mpv.icon256.png)
-
-## About mpv.snad:
-_(This repository contain optimized configs for mpv player focused on fast, efficient & minimalist look. No bs scripts which will reduce speed of loading/opening a file.)_
+### About mpv.snad:
+[<img src="https://github.com/thisisshihan/screenshots/blob/master/mpv.icon256.png" width="100">](https://mpv.io/)\
+[mpv](https://mpv.io/) Player is a free, open source, and cross-platform media player.
+This repository contain optimized configs for mpv player focused on fast, efficient & minimalist look. No bs scripts which will reduce speed of loading/opening a file.
 
 #### Download Latest Windows Version:
 * Download the latest version from sourceforge.net [mpv.snad](https://sourceforge.net/projects/mpv-snad/files/) (this file contain all the config files) 
 * _(AMD FSR and NVIDIA Image Scaling added (CTRL+A/N/Z) added to v35.1 +)_
 
+#### Major ✨ Features of mpv.snad configs:
+* Fast, efficient & minimalist look (Osc updated to latest native Floating Design)
+* AMD FSR and NVIDIA Image Scaling (CTRL+A/N/Z)
+* Optimized Touchpad Gesture
+* Enabled native Advanced Playlist (P)
+* Podcast RSS Feed Support
+
 #### How to install:
+* Download latest mpv player from official [github](https://github.com/zhongfly/mpv-winbuild)
+* Download mpv.snad config files from [Here](https://github.com/thisisshihan/mpv-player-config-snad/archive/refs/heads/mpv-config-snad-windows-ubuntu-linux-macos.zip)
 * Extract the files.
 * Move the folder to required destination.
 * Go to **_`.../installer`_** folder
 * Run **_`mpv-install.bat`_** as admin
+* The configuration can be kept together with MPV instead of being installed into the user's system configuration directory.
+```text
+mpv/
+├── mpv.exe
+├── installer/
+│   ├── mpv-install.bat
+│   ├── mpv-icon.ico
+│   └── ...
+├── portable_config/
+│   ├── mpv.conf
+│   ├── input.conf
+│   ├── shaders/
+|   ├── scripts/
+│   └── ...
+```
 
 #### Other Downloads
 * Windows / ubuntu / linux / macos / Android stable cahnnel official: [mpv.io](http://mpv.io/installation)
-* Windows beta channel official: [sourceforge.net](https://sourceforge.net/projects/mpv-player-windows/files)
 * Android stable official: [play.google.com](https://play.google.com/store/apps/details?id=is.xyz.mpv&hl=en)
 * Android test builds official: [github.com](https://github.com/mpv-android/mpv-android/releases)
-* Config files by snad for Windows / ubuntu / linux / macos: [mpv.snad](https://goo.gl/7Mphpk)
+* Config For Windows not required if you download the player mpv.snad [sourceforge](https://sourceforge.net/projects/mpv-snad/files/)
 
-#### Config For Windows (not required if you download the player from this repository):
-* Download [_All Settings From Here_](https://goo.gl/7Mphpk) and extract them to a folder.
+#### Config For Windows:
+* Download All Settings From [Here](https://github.com/thisisshihan/mpv-player-config-snad/archive/refs/heads/mpv-config-snad-windows-ubuntu-linux-macos.zip) and extract them to a folder.
 * copy / overwrite extracted files to **_`...AppData\Roaming\mpv`_** <br/>_or_
 * create a folder as **_`portable_config`_** in the folder where mpv.exe exist and,
 * copy extracted files to **_`...portable_config`_**
 
 #### Config For Linux:
-* Download [_All Settings From Here_](https://goo.gl/7Mphpk) and extract them to a folder.
+* Download All Settings From [Here](https://github.com/thisisshihan/mpv-player-config-snad/archive/refs/heads/mpv-config-snad-windows-ubuntu-linux-macos.zip) and extract them to a folder.
 * copy / overwrite extracted files to **_`...etc/mpv`_** _(you need root access to this folder)_
 
 #### **Basic key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY_basic.md)
 #### **A Complete key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)
 -------------------------------------
 **Simple Interface**<br/>
-<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/mpv.interface2.png)</kbd>
+<img src="https://github.com/thisisshihan/screenshots/blob/master/mpv.interface2.png" width="800">
+
 ##
 **Touchpad Gesture**<br/>
-![s2](https://github.com/thisisshihan/screenshots/blob/master/touchpadGesture2.png)
+<img src="https://github.com/thisisshihan/screenshots/blob/master/touchpadGesture2.png" width="300">
+
 ##
 **Advanced Playlist Manager**<br/>
-_Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd> <br/>_A Complete key guide -->_ [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)<br/>
-<kbd>![s1](https://github.com/thisisshihan/screenshots/blob/master/mpv.playlist.png)</kbd>
+_Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd> <br/>_A Complete key guide -->_ [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)<br/>\
+<img src="https://github.com/thisisshihan/screenshots/blob/master/mpv.playlist.png" width="800">
+
 ##
 **Podcast RSS Feed Support**<br/>
-_Podcast Menu_ <kbd> ALT </kbd> + <kbd>P</kbd>
-<kbd>![s2](https://github.com/thisisshihan/screenshots/blob/master/Podcast.png)</kbd>
-<details>
-<summary>Sample format of podcast feed (.pcst/.snad) file</summary>
-One RSS feed URL per line. Lines starting with > # are ignored.
-Drag the feed.pcst file onto the mpv window (or open the feed.pcst file with mpv.exe)
-Feed file could be just link or with options
+_Podcast Menu_ <kbd> ALT </kbd> + <kbd>P</kbd>\
+<img src="https://github.com/thisisshihan/screenshots/blob/master/Podcast.png" width="600">
 
-> filter: full
+```text
+# Podcast feed list for podcast.lua
+# One RSS feed URL per line. Lines starting with # are ignored.
+# Drag this file onto the mpv window (or run: mpv.exe feeds.txt)
+# ALT+P for podcast menu
+#
+# FILTERING (optional):
+#   filter: keyword1, keyword2   -> only load episodes whose title
+#                                   contains at least one keyword
+#   exclude: keyword1, keyword2  -> skip episodes whose title contains
+#                                   any of these keywords
+#
+# REMOVE DUPLICATE TITLES (optional, off by default):
+#   remove-duplicates: yes       -> drop episodes with a title already
+#                                   seen earlier in this load
+#
+# SKIP INTRO / ADS (optional):
+#   start: 180        -> start every episode below 180s in
+#   start: 3:00       -> same thing, mm:ss format also accepted
+#   start: 0          -> turn it back off
+#
+# YT-DLP (optional, off by default):
+#   ytdl: yes          -> allow yt-dlp for feeds below (rarely needed)
+#   ytdl: no           -> back to default (mpv opens the file directly)
+#
+# All of the above are "sticky" - they apply to every feed URL below
+# them until changed again. You can also set any of them inline for a
+# single feed only:
+# https://example.com/feed.rss | filter=keyword1, keyword2 | start=45
 
-> exclude: promo, ad break
-
-> remove-duplicates: yes
-
-> start: 3:00
-
-> https://snad.fm/shows/snad-on-demand/playlists/podcast
-</details>
+filter: full
+exclude: promo, ad break
+remove-duplicates: yes
+start: 3:00
+https://snad.fm/shows/snad-on-demand/playlists/podcast
+```
 
 ##
 **Visualizer**<br/>
