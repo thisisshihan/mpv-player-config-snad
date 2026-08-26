@@ -22,7 +22,7 @@ local function update_clock()
 
     -- Get MPV OSD font settings
     local font = mp.get_property("osd-font") or "sans-serif"
-    local font_size = mp.get_property_number("osd-font-size") or 28
+    local font_size = mp.get_property_number("osd-font-size")*0.75 or 28
 
     clock.data = string.format(
         "{\\an1\\pos(%d,%d)\\fn%s\\fs%d\\bord2\\shad1}%s",
