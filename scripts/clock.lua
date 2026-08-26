@@ -1,83 +1,58 @@
--- Mozbugbox's lua utilities for mpv 
--- Copyright (c) 2015-2018 mozbugbox@yahoo.com.au
--- Licensed under GPL version 3 or later
+-- Simple live clock for mpv
+-- this clock.lua script written by snad
+-- this lua is a part of mpv.snad
+-- https://github.com/thisisshihan/mpv-player-config-snad
 
---[[
-Show current time on video
-Usage: c script_message show-clock [true|yes]
---]]
+local clock = mp.create_osd_overlay("ass-events")
+local enabled = false
 
-local msg = require("mp.msg")
-local utils = require("mp.utils") -- utils.to_string()
-local assdraw = require('mp.assdraw')
+-- Clock position
+-----------------------------------------------------------
+local clock_x = 25
+local clock_y = 700
 
-local update_timeout = 10 -- in seconds
-
--- Class creation function
-function class_new(klass)
-    -- Simple Object Oriented Class constructor
-    local klass = klass or {}
-    function klass:new(o)
-        local o = o or {}
-        setmetatable(o, self)
-        self.__index = self
-        return o
+local function update_clock()
+    if not enabled then
+        clock.data = ""
+        clock:update()
+        return
     end
-    return klass
+
+    local time = os.date("%H:%M") -- ("%H:%M:%S")
+
+    -- Get MPV OSD font settings
+    local font = mp.get_property("osd-font") or "sans-serif"
+    local font_size = mp.get_property_number("osd-font-size") or 28
+
+    clock.data = string.format(
+        "{\\an1\\pos(%d,%d)\\fn%s\\fs%d\\bord2\\shad1}%s",
+        clock_x,
+        clock_y,
+        font,
+        font_size,
+        time
+    )
+
+    clock:update()
 end
 
--- print content of a lua table
-function print_table(tbl)
-    msg.info(utils.to_string(tbl))
-end
+-- TOGGLE
+-----------------------------------------------------------
+local function toggle_clock()
+    enabled = not enabled
 
--- Show OSD Clock
-local OSDClock = class_new()
-function OSDClock:_show_clock()
-    -- Show wall clock on bottom left corner
-    local osd_w, osd_h, aspect = mp.get_osd_size()
+    update_clock()
 
-    local scale = 1
-    local fontsize = tonumber(mp.get_property("options/osd-font-size")) / scale
-        fontsize = math.floor(fontsize)
-    -- msg.info(fontsize)
-    --
-    local now = os.date("%H:%M")
-    local ass = assdraw:ass_new()
-    ass:new_event()
-    ass:an(1)
-    ass:append(string.format("{\\fs%d}", fontsize))
-    ass:append(now)
-    ass:an(0)
-    mp.set_osd_ass(osd_w, osd_h, ass.text)
-    -- msg.info(ass.text, osd_w, osd_h)
-end
-
-function clear_osd()
-    local osd_w, osd_h, aspect = mp.get_osd_size()
-    mp.set_osd_ass(osd_w, osd_h, "")
-end
-
-function OSDClock:toggle_show_clock(val)
-    local trues = {["true"]=true, ["yes"] = true}
-    if self.tobj then
-        if trues[val] ~= true then
-            self.tobj:kill()
-            self.tobj = nil
-            clear_osd()
-        end
-    elseif val == nil or trues[val] == true then
-        self:_show_clock()
-        local tobj = mp.add_periodic_timer(update_timeout,
-            function() self:_show_clock() end)
-        self.tobj = tobj
+    if enabled then
+        mp.osd_message("Clock: ON", 1)
+    else
+        mp.osd_message("Clock: OFF", 1)
     end
 end
 
-local osd_clock = OSDClock:new()
-function toggle_show_clock(v)
-    osd_clock:toggle_show_clock(v)
-end
+mp.add_forced_key_binding("w", "toggle", toggle_clock)
 
-mp.add_key_binding("", "show-clock", toggle_show_clock)
-
+-- Update/redraw every 30 seconds
+-----------------------------------------------------------
+mp.add_periodic_timer(30, update_clock)
+update_clock()
