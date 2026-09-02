@@ -226,6 +226,10 @@ local url_to_ytdl = {}
 -- episodes across the whole load session (see remove-duplicates: directive)
 local seen_titles = {}
 
+-- path of the feeds file that was last opened, so the menu's Refresh
+-- action knows what to re-fetch
+local last_loaded_path = nil
+
 local menu_active = false
 local menu_selected = 1
 local menu_overlay = nil
@@ -775,8 +779,188 @@ local function load_feeds_from_file(path)
         mp.osd_message("Podcast: no feed URLs found in " .. path, 3)
         return false
     end
+    last_loaded_path = path
     load_feed_entries_async(entries)
     return true
+end
+
+----------------------------------------------------------------------
+-- On-screen podcast menu helpers
+----------------------------------------------------------------------
+
+local function format_pubdate(pd)
+    if not pd or pd == "" then return "" end
+    -- RSS pubDate looks like: "Fri, 08 Aug 2026 09:00:00 +0000"
+    local d, mo, y = pd:match("(%d%d?) (%a%a%a) (%d%d%d%d)")
+    if d and mo and y then
+        return string.format("%s %s %s", d, mo, y)
+    end
+    return ""
+end
+
+-- Forward declaration so refresh_feeds_async can call menu_render
+local menu_render 
+
+----------------------------------------------------------------------
+-- Refresh: re-fetches the same feeds file and ADDS any genuinely new
+-- episodes to the end of the existing mpv playlist (via "append", never
+-- "replace"), so whatever is currently playing is never touched. Unlike
+-- the initial load, this does not reset episodes/url_to_start/
+-- seen_titles - it builds on top of that existing state so already-seen
+-- episodes are correctly recognized and skipped rather than duplicated.
+----------------------------------------------------------------------
+
+local menu_refreshing = false
+-- brief status text shown in the menu header after a refresh completes
+-- (e.g. "3 new episodes added"), cleared automatically after a few
+-- seconds - kept separate from mp.osd_message so it never visually
+-- overlaps the menu itself
+local menu_status = nil
+
+local function refresh_feeds_async()
+    if menu_refreshing then
+        return
+    end
+    if not last_loaded_path then
+        mp.osd_message("Podcast: nothing loaded yet to refresh.", 3)
+        return
+    end
+
+    local ok_entries, entries = pcall(read_feed_entries, last_loaded_path)
+    if not ok_entries then
+        msg.error("Refresh: failed to read feeds file: " .. tostring(entries))
+        mp.osd_message("Podcast: refresh failed (could not read feeds file).", 3)
+        return
+    end
+    if #entries == 0 then
+        mp.osd_message("Podcast: no feed URLs found in " .. last_loaded_path, 3)
+        return
+    end
+
+    menu_refreshing = true
+    -- When the menu is open, show refresh status IN the menu's own
+    -- header (see menu_text()) instead of via mp.osd_message - both the
+    -- menu overlay and osd_message render near the same top-left corner
+    -- by default, and a lingering osd_message could visually collide
+    -- with the menu, making it look broken/unresponsive even though the
+    -- underlying key bindings are working fine. osd_message is only
+    -- used as a fallback when there's no menu open to show status in.
+    if menu_active then
+        menu_render()
+    else
+        mp.osd_message("Podcast: refreshing feed...", 30)
+    end
+
+    -- Safety net: if something goes wrong badly enough that the async
+    -- chain below never reaches finish() (a stuck subprocess, an error
+    -- escaping the pcall boundary some other way, etc.), this forces
+    -- menu_refreshing back to false after a while so "R" isn't
+    -- permanently stuck doing nothing.
+    local refresh_generation = (refresh_generation_counter or 0) + 1
+    refresh_generation_counter = refresh_generation
+    mp.add_timeout(25, function()
+        if menu_refreshing and refresh_generation_counter == refresh_generation then
+            msg.warn("Refresh: timed out without finishing, resetting state")
+            menu_refreshing = false
+        end
+    end)
+
+    local i = 0
+    local new_count = 0
+
+    local function finish()
+        menu_refreshing = false
+        local summary = new_count > 0
+            and (new_count .. " new episode(s) added")
+            or "no new episodes"
+        if menu_active then
+            menu_status = summary
+            menu_render()
+            mp.add_timeout(4, function()
+                menu_status = nil
+                if menu_active then menu_render() end
+            end)
+        else
+            mp.osd_message("Podcast: refreshed - " .. summary, new_count > 0 and 4 or 3)
+        end
+    end
+
+    local function fetch_next()
+        i = i + 1
+        local entry = entries[i]
+
+        if not entry then
+            finish()
+            return
+        end
+
+        -- Everything that touches shared state (episodes, feed_titles,
+        -- url_to_start, etc.) or parses external/untrusted data runs
+        -- inside pcall: a malformed feed or an unexpected edge case in
+        -- one entry must not be able to throw an uncaught error that
+        -- kills the rest of the refresh (or, worse, this script's other
+        -- key bindings like podcast_toggle) - it just gets logged and
+        -- refresh moves on to the next feed instead.
+        local function handle_xml(xml)
+            local ok, err = pcall(function()
+                local title, items_or_err = parse_feed(xml, entry.url)
+                if not title then
+                    msg.error("Refresh: feed failed (" .. entry.url .. "): " .. tostring(items_or_err))
+                    return
+                end
+
+                local already_listed = false
+                for _, ft in ipairs(feed_titles) do
+                    if ft == title then already_listed = true break end
+                end
+                if not already_listed then
+                    table.insert(feed_titles, title)
+                end
+
+                for _, item in ipairs(items_or_err) do
+                    if episode_matches(item.title, entry.include, entry.exclude) then
+                        local dup = false
+                        if entry.remove_duplicates then
+                            local key = trim(item.title):lower()
+                            if seen_titles[key] then
+                                dup = true
+                            else
+                                seen_titles[key] = true
+                            end
+                        end
+                        -- url_to_start already having an entry for this
+                        -- URL means we've already added this exact
+                        -- episode in a previous load/refresh - skip it
+                        if not dup and url_to_start[item.url] == nil then
+                            item.start = entry.start or 0
+                            table.insert(episodes, item)
+                            url_to_start[item.url] = item.start
+                            url_to_ytdl[item.url] = entry.ytdl
+                            -- append only - never touches the currently
+                            -- playing item or anything already queued
+                            mp.commandv("loadfile", item.url, "append")
+                            new_count = new_count + 1
+                        end
+                    end
+                end
+            end)
+            if not ok then
+                msg.error("Refresh: error handling feed " .. entry.url .. ": " .. tostring(err))
+            end
+            fetch_next()
+        end
+
+        http_get_async(entry.url, function(xml)
+            if xml then
+                handle_xml(xml)
+            else
+                msg.error("Refresh: fetch error for " .. entry.url)
+                fetch_next()
+            end
+        end)
+    end
+
+    fetch_next()
 end
 
 ----------------------------------------------------------------------
@@ -875,18 +1059,8 @@ mp.add_hook("on_load", 50, function()
 end)
 
 ----------------------------------------------------------------------
--- On-screen podcast menu
+-- On-screen podcast menu rendering & actions
 ----------------------------------------------------------------------
-
-local function format_pubdate(pd)
-    if not pd or pd == "" then return "" end
-    -- RSS pubDate looks like: "Fri, 08 Aug 2026 09:00:00 +0000"
-    local d, mo, y = pd:match("(%d%d?) (%a%a%a) (%d%d%d%d)")
-    if d and mo and y then
-        return string.format("%s %s %s", d, mo, y)
-    end
-    return ""
-end
 
 local function menu_text()
     local ww, wh = mp.get_osd_size()
@@ -894,7 +1068,9 @@ local function menu_text()
     wh = wh or 720
 
     local lines = {}
-    table.insert(lines, "{\\an7\\fs28\\bord2\\shad1\\c&HFFFFFF&}Podcast Episodes{\\fs20}  (UP/DOWN move, ENTER play, ESC close)\\N\\N")
+    local refresh_tag = menu_refreshing and "  {\\c&H55AAFF&}[Refreshing...]{\\c&HFFFFFF&}" or ""
+    local status_tag = (not menu_refreshing and menu_status) and ("  {\\c&H70E070&}[" .. menu_status .. "]{\\c&HFFFFFF&}") or ""
+    table.insert(lines, "{\\an7\\fs28\\bord2\\shad1\\c&HFFFFFF&}Podcast Episodes{\\fs20}  (UP/DOWN move, ENTER play, R refresh, ESC close)" .. refresh_tag .. status_tag .. "\\N\\N")
 
     if #episodes == 0 then
         table.insert(lines, "{\\fs22\\c&HAAAAAA&}No episodes loaded.\\NDrag & drop a .pcst/.snad file containing a podcast feed URL onto the mpv window.")
@@ -922,7 +1098,8 @@ local function menu_text()
     return "{\\pos(30,30)}" .. table.concat(lines, "\\N")
 end
 
-local function menu_render()
+-- Assign definition to forward-declared local variable
+menu_render = function()
     if not menu_overlay then
         menu_overlay = mp.create_osd_overlay("ass-events")
     end
@@ -940,6 +1117,8 @@ local function menu_close()
         mp.remove_key_binding("podcast-menu-down")
         mp.remove_key_binding("podcast-menu-enter")
         mp.remove_key_binding("podcast-menu-esc")
+        mp.remove_key_binding("podcast-menu-refresh")
+        mp.remove_key_binding("podcast-menu-refresh-shift")
         menu_keys_bound = false
     end
 end
@@ -979,6 +1158,8 @@ local function menu_open()
     end, { repeatable = true })
     mp.add_forced_key_binding("ENTER", "podcast-menu-enter", menu_play_selected)
     mp.add_forced_key_binding("ESC", "podcast-menu-esc", menu_close)
+    mp.add_forced_key_binding("r", "podcast-menu-refresh", refresh_feeds_async)
+    mp.add_forced_key_binding("R", "podcast-menu-refresh-shift", refresh_feeds_async)
     menu_keys_bound = true
 
     menu_render()
@@ -992,6 +1173,9 @@ local function podcast_toggle()
     end
 end
 
+-- This matches the existing binding already present in this user's
+-- input.conf:   alt+p script-binding podcast_toggle
 mp.add_key_binding(nil, "podcast_toggle", podcast_toggle)
+mp.add_key_binding(nil, "podcast_refresh", refresh_feeds_async)
 
 msg.info("podcast.lua loaded - drag & drop a .pcst/.snad feed file, ALT+P to open the menu")
