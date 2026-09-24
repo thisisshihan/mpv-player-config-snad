@@ -193,12 +193,9 @@ local msg   = require 'mp.msg'
 ]]
 if mp.get_property("tls-verify") ~= "no" then
     mp.set_property("options/tls-verify", "no") -- WORKAROUND, see block comment above
-
---[[
     msg.warn("[podcast] WORKAROUND ACTIVE: tls-verify disabled (missing/broken CA bundle) - see [WORKAROUND] comment near the top of podcast.lua")
     mp.osd_message("[podcast] WORKAROUND: TLS verification disabled (see podcast.lua)", 4)
 end
-]]
     
 ----------------------------------------------------------------------
 -- Config
