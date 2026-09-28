@@ -36,6 +36,16 @@
       the network. This isn't configurable per feed - it's applied
       automatically to every episode this script loads.
 
+    PLAYLIST FILE
+    - The playlist built from a feed is saved as an .m3u8 in your Music
+      folder (%USERPROFILE%\Music), named after the podcast - e.g.
+      "Sample Show.m3u8". Loading the same podcast again overwrites that
+      file rather than creating a new one each time, and refreshing from
+      the menu (R) updates it whenever new episodes are appended.
+    - To use a different folder, set PLAYLIST_DIR near the top of this
+      script to a full path. If the chosen folder can't be written to
+      (missing/read-only), it falls back to %TEMP%.
+
     [WORKAROUND] TLS VERIFICATION IS DISABLED
     - This script currently disables TLS certificate verification for all
       https streams mpv opens directly (mpv-level libcurl networking, not
@@ -196,12 +206,18 @@ if mp.get_property("tls-verify") ~= "no" then
     msg.warn("[podcast] WORKAROUND ACTIVE: tls-verify disabled (missing/broken CA bundle) - see [WORKAROUND] comment near the top of podcast.lua")
     mp.osd_message("[podcast] WORKAROUND: TLS verification disabled (see podcast.lua)", 4)
 end
-    
+
 ----------------------------------------------------------------------
 -- Config
 ----------------------------------------------------------------------
 
 local CURL_TIMEOUT = "20" -- seconds
+
+-- Where the generated playlist (.m3u8) is saved. Leave "" to use your
+-- Windows Music folder (%USERPROFILE%\Music); set a full path (e.g.
+-- "D:\\Podcasts") to use a different folder instead. If the chosen
+-- folder can't be written to, %TEMP% is used as a fallback.
+local PLAYLIST_DIR = ""
 
 ----------------------------------------------------------------------
 -- State
@@ -653,10 +669,82 @@ local function start_loading_animation()
     loading_timer = mp.add_timeout(0.5, loading_tick)
 end
 
+-- Candidate folders to save the playlist in, in priority order: an
+-- explicit PLAYLIST_DIR override if set, otherwise the user's Windows
+-- Music folder, then %TEMP% as a last-resort fallback if neither of
+-- those can be written to (e.g. folder doesn't exist / no permission).
+local function playlist_dirs()
+    local dirs = {}
+    if PLAYLIST_DIR ~= "" then
+        table.insert(dirs, PLAYLIST_DIR)
+    else
+        local profile = os.getenv("USERPROFILE")
+        if profile and profile ~= "" then
+            table.insert(dirs, utils.join_path(profile, "Music"))
+        end
+    end
+    table.insert(dirs, os.getenv("TEMP") or os.getenv("TMP") or ".")
+    return dirs
+end
+
+-- Builds a filesystem-safe .m3u8 filename from the podcast/feed title
+-- (falling back to the feeds-file name, then "Podcast") so re-loading
+-- the same podcast overwrites the same file instead of piling up new
+-- ones named by timestamp.
+local function playlist_filename()
+    local name
+    if #feed_titles == 1 then
+        name = feed_titles[1]
+    elseif #feed_titles > 1 then
+        name = table.concat(feed_titles, " + ")
+    elseif last_loaded_path then
+        name = last_loaded_path:match("([^/\\]+)%.[^%.]+$")
+    end
+    name = name or "Podcast"
+    -- Characters illegal in Windows filenames, plus control chars, become "_"
+    name = name:gsub('[\\/:*?"<>|%c]', "_")
+    -- Non-ASCII dropped: Lua's io.open goes through the ANSI code page on
+    -- Windows, so a UTF-8 filename can silently fail to open there.
+    name = name:gsub("[^\32-\126]", "")
+    name = trim(name:gsub("%s+", " "))
+    name = name:gsub("[%. ]+$", "") -- Windows disallows trailing dots/spaces
+    if #name > 60 then
+        name = trim(name:sub(1, 60))
+    end
+    if name == "" then name = "Podcast" end
+    return name .. ".m3u8"
+end
+
+-- Writes the current `episodes` list out as an .m3u8, trying each
+-- candidate folder from playlist_dirs() in order until one succeeds.
+-- Returns the path written on success, or nil + the last error.
+local function write_playlist_file()
+    local filename = playlist_filename()
+    local last_err
+    for _, dir in ipairs(playlist_dirs()) do
+        local path = utils.join_path(dir, filename)
+        local out, ferr = io.open(path, "wb")
+        if out then
+            out:write("#EXTM3U\n")
+            for _, ep in ipairs(episodes) do
+                out:write("#EXTINF:-1," .. ep.title:gsub("\n", " ") .. "\n")
+                out:write(ep.url .. "\n")
+            end
+            out:close()
+            msg.info("Saved playlist: " .. path)
+            return path
+        end
+        last_err = ferr
+        msg.warn("could not write playlist to " .. path .. ": " .. tostring(ferr))
+    end
+    return nil, last_err
+end
+
 -- Fetches all feeds in `entries` one at a time (async, non-blocking), then
--- builds the temp .m3u8 and swaps it in over the loading placeholder.
--- This never blocks the player - each curl call runs in the background
--- while mpv's window stays fully responsive and shows our loading screen.
+-- builds the .m3u8 (in your Music folder by default - see PLAYLIST_DIR)
+-- and swaps it in over the loading placeholder. This never blocks the
+-- player - each curl call runs in the background while mpv's window
+-- stays fully responsive and shows our loading screen.
 local function load_feed_entries_async(entries)
     episodes = {}
     feed_titles = {}
@@ -679,23 +767,16 @@ local function load_feed_entries_async(entries)
                 return
             end
 
-            -- Build a temp M3U8 playlist and load it in place of the
-            -- loading placeholder that's currently "playing".
-            local tmp_dir = os.getenv("TEMP") or os.getenv("TMP") or "."
-            local m3u_path = utils.join_path(tmp_dir, "mpv-podcast-" .. os.time() .. ".m3u8")
-
-            local out, ferr = io.open(m3u_path, "wb")
-            if not out then
-                msg.error("could not write temp playlist: " .. tostring(ferr))
-                mp.osd_message("Podcast: could not write temp playlist.", 4)
+            -- Build the M3U8 playlist (named after the podcast, saved to
+            -- your Music folder by default - see PLAYLIST_DIR) and load
+            -- it in place of the loading placeholder that's currently
+            -- "playing".
+            local m3u_path, werr = write_playlist_file()
+            if not m3u_path then
+                msg.error("could not write playlist: " .. tostring(werr))
+                mp.osd_message("Podcast: could not write playlist file.", 4)
                 return
             end
-            out:write("#EXTM3U\n")
-            for _, ep in ipairs(episodes) do
-                out:write("#EXTINF:-1," .. ep.title:gsub("\n", " ") .. "\n")
-                out:write(ep.url .. "\n")
-            end
-            out:close()
 
             mp.commandv("loadfile", m3u_path, "replace")
             mp.osd_message(
@@ -785,23 +866,6 @@ local function load_feeds_from_file(path)
 end
 
 ----------------------------------------------------------------------
--- On-screen podcast menu helpers
-----------------------------------------------------------------------
-
-local function format_pubdate(pd)
-    if not pd or pd == "" then return "" end
-    -- RSS pubDate looks like: "Fri, 08 Aug 2026 09:00:00 +0000"
-    local d, mo, y = pd:match("(%d%d?) (%a%a%a) (%d%d%d%d)")
-    if d and mo and y then
-        return string.format("%s %s %s", d, mo, y)
-    end
-    return ""
-end
-
--- Forward declaration so refresh_feeds_async can call menu_render
-local menu_render 
-
-----------------------------------------------------------------------
 -- Refresh: re-fetches the same feeds file and ADDS any genuinely new
 -- episodes to the end of the existing mpv playlist (via "append", never
 -- "replace"), so whatever is currently playing is never touched. Unlike
@@ -816,6 +880,15 @@ local menu_refreshing = false
 -- seconds - kept separate from mp.osd_message so it never visually
 -- overlaps the menu itself
 local menu_status = nil
+
+-- Forward declaration: refresh_feeds_async (below) needs to call
+-- menu_render() to update the menu header while a refresh is in
+-- progress, but menu_render's real definition lives further down this
+-- file, alongside the rest of the menu code. Without this forward
+-- declaration, that call would resolve to a nil GLOBAL instead of the
+-- local function defined later, and pressing R would error instead of
+-- refreshing.
+local menu_render
 
 local function refresh_feeds_async()
     if menu_refreshing then
@@ -870,6 +943,18 @@ local function refresh_feeds_async()
 
     local function finish()
         menu_refreshing = false
+
+        -- Keep the saved playlist file in sync with any newly appended
+        -- episodes. Re-derives the same path write_playlist_file() used
+        -- on the initial load (same podcast title -> same filename), so
+        -- this overwrites that file rather than creating a second one.
+        if new_count > 0 then
+            local ok_w, werr = pcall(write_playlist_file)
+            if not ok_w then
+                msg.warn("Refresh: could not update playlist file: " .. tostring(werr))
+            end
+        end
+
         local summary = new_count > 0
             and (new_count .. " new episode(s) added")
             or "no new episodes"
@@ -985,9 +1070,6 @@ mp.add_hook("on_load", 50, function()
 
     local lower = path:lower()
     if lower:match("%.pcst$") or lower:match("%.snad$") then
-        -- avoid re-triggering on the temp .m3u8 we generate ourselves
-        if lower:match("mpv%-podcast%-%d+%.m3u8$") then return end
-
         -- Instant placeholder: a plain dark screen via mpv's lavfi
         -- pseudo-demuxer, so the window shows up right away instead of
         -- staying blank/absent while the feed downloads in the
@@ -1059,8 +1141,18 @@ mp.add_hook("on_load", 50, function()
 end)
 
 ----------------------------------------------------------------------
--- On-screen podcast menu rendering & actions
+-- On-screen podcast menu
 ----------------------------------------------------------------------
+
+local function format_pubdate(pd)
+    if not pd or pd == "" then return "" end
+    -- RSS pubDate looks like: "Fri, 08 Aug 2026 09:00:00 +0000"
+    local d, mo, y = pd:match("(%d%d?) (%a%a%a) (%d%d%d%d)")
+    if d and mo and y then
+        return string.format("%s %s %s", d, mo, y)
+    end
+    return ""
+end
 
 local function menu_text()
     local ww, wh = mp.get_osd_size()
@@ -1098,7 +1190,9 @@ local function menu_text()
     return "{\\pos(30,30)}" .. table.concat(lines, "\\N")
 end
 
--- Assign definition to forward-declared local variable
+-- Assigns the forward-declared local above, rather than "local function
+-- menu_render()" (which would create a NEW local, leaving the one
+-- captured by refresh_feeds_async's closure permanently nil).
 menu_render = function()
     if not menu_overlay then
         menu_overlay = mp.create_osd_overlay("ass-events")
@@ -1118,7 +1212,6 @@ local function menu_close()
         mp.remove_key_binding("podcast-menu-enter")
         mp.remove_key_binding("podcast-menu-esc")
         mp.remove_key_binding("podcast-menu-refresh")
-        mp.remove_key_binding("podcast-menu-refresh-shift")
         menu_keys_bound = false
     end
 end
@@ -1159,7 +1252,6 @@ local function menu_open()
     mp.add_forced_key_binding("ENTER", "podcast-menu-enter", menu_play_selected)
     mp.add_forced_key_binding("ESC", "podcast-menu-esc", menu_close)
     mp.add_forced_key_binding("r", "podcast-menu-refresh", refresh_feeds_async)
-    mp.add_forced_key_binding("R", "podcast-menu-refresh-shift", refresh_feeds_async)
     menu_keys_bound = true
 
     menu_render()
@@ -1176,6 +1268,5 @@ end
 -- This matches the existing binding already present in this user's
 -- input.conf:   alt+p script-binding podcast_toggle
 mp.add_key_binding(nil, "podcast_toggle", podcast_toggle)
-mp.add_key_binding(nil, "podcast_refresh", refresh_feeds_async)
 
 msg.info("podcast.lua loaded - drag & drop a .pcst/.snad feed file, ALT+P to open the menu")
