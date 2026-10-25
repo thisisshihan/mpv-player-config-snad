@@ -59,8 +59,14 @@ mpv/
 -------------------------------------
 **New Interface**<br/>
 <img src="https://github.com/thisisshihan/screenshots/blob/master/new_1.jpg" width="800">
+
+**New Interface comes with Blur effect**<br/>
 <img src="https://github.com/thisisshihan/screenshots/blob/master/new_2.jpg" width="800">
+
+**New right click menu to match new osc**<br/>
 <img src="https://github.com/thisisshihan/screenshots/blob/master/new_3.jpg" width="800">
+
+**Android style seek bar**<br/>
 <img src="https://github.com/thisisshihan/screenshots/blob/master/new_4.jpg" width="800">
 
 **Simple Default Interface**<br/>
