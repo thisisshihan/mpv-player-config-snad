@@ -1467,7 +1467,10 @@ local function layout_streamer(ctx)
     local by = h * 0.68
     local bx = badges(mx, by, k)
     local cl = chapter_label()
-    if cl and opts.pill_show_chapter then chip(bx, by, k, cl) end
+    if cl and opts.pill_show_chapter then
+        local cwid = textw(cl, opts.pill_font_size * k, opts.pill_bold) + 2 * opts.pill_padding * k
+        if bx + cwid < w - mx then chip(bx, by, k, cl) end
+    end
 
     T(mx, h * 0.733, 4, 17 * k, info.meta, "C9C9C9", 1)
     local cache = mp.get_property_number("demuxer-cache-duration")
@@ -1509,16 +1512,26 @@ local function layout_center(ctx)
     local cl = chapter_label()
     local ppc = playlist_pos()
     local tfull = (ppc and (ppc .. " ") or "") .. info.title
-    T(mx, ty, 4, 22 * k, tfull, "FFFFFF", 1, true)
-    local tx2 = mx + textw(tfull, 22 * k, true) + 14 * k
-    if cl then T(tx2, ty + 2 * k, 4, 15 * k, MID:sub(2) .. cl, "E0E0E0", 1) end
-    -- pills right-aligned on the title row (measure first, then draw from the right edge)
-    do
-        local tmp = #out
-        local bw = badges(0, -1000, k, { compact = true })
-        for i = #out, tmp + 1, -1 do out[i] = nil end
-        badges(w - mx - (bw - opts.pill_gap * k), ty, k, { compact = true })
+    -- measure the pills first: title and chapter label must stop before them
+    local tmp = #out
+    local bw = badges(0, -1000, k, { compact = true })
+    for i = #out, tmp + 1, -1 do out[i] = nil end
+    local pills_left = w - mx - (bw - opts.pill_gap * k)
+    local room = pills_left - mx - 18 * k
+    local tshown = tfull
+    if textw(tfull, 22 * k, true) > room then tshown = fit(tfull, 22 * k, room, true) end
+    T(mx, ty, 4, 22 * k, tshown, "FFFFFF", 1, true)
+    local tx2 = mx + textw(tshown, 22 * k, true) + 14 * k
+    if cl then
+        local avail = pills_left - tx2 - 14 * k
+        local lbl = MID:sub(2) .. cl
+        if textw(lbl, 15 * k) <= avail then
+            T(tx2, ty + 2 * k, 4, 15 * k, lbl, "E0E0E0", 1)
+        elseif avail > 90 * k then
+            T(tx2, ty + 2 * k, 4, 15 * k, fit(lbl, 15 * k, avail), "E0E0E0", 1)
+        end                                  -- too tight: leave the chapter label out
     end
+    badges(pills_left, ty, k, { compact = true })
 
     draw_seek(mx, w - mx, sy, k, 4 * k, ctx)
 
@@ -2238,7 +2251,7 @@ mp.observe_property("video-params", "native", function() refresh_info() end)
 mp.observe_property("media-title", "string", function() refresh_info() end)
 mp.observe_property("chapter-list", "native", function() refresh_chapters() end)
 
-local VERSION = "v2.44"
+local VERSION = "v2.45"
 local layout_known = false
 for _, v in ipairs(LAYOUTS) do if v == opts.layout then layout_known = true end end
 mp.msg.info("snad-osc " .. VERSION .. "  layout=" .. S.layout ..
