@@ -45,6 +45,11 @@ local opts = {
     wave_flat_when_paused = true,  -- the wave settles to a straight line while paused
     show_chapter_buttons = true, -- previous / next CHAPTER buttons (|< >| icons) next to the playlist buttons (single triangle)
     disabled_color = "6B7078",  -- colour of a button that cannot be used now (no chapters, no playlist ...)
+    history = true,             -- "History" tab in the playlist drawer (recently played files, kept between sessions)
+    history_source = "auto",    -- auto | mpv | own: auto uses mpv's built-in watch history when save-watch-history=yes is set in mpv.conf, otherwise a list kept by this script
+    history_max = 50,           -- how many entries to keep
+    history_resume = true,      -- picking an entry resumes where you stopped
+    history_file = "~~/snad-osc-history.json", -- where the list is stored (~~/ = your mpv config folder)
     show_clock = true,
     active_style = "border",    -- how a toggled-on button looks (tracks / loop / playlist / fullscreen / volume): border | fill | both | none
     active_fill = "darkglass",  -- fill look for active_style=fill|both: dark | glass | darkglass
@@ -1336,6 +1341,142 @@ local function draw_menu(ctx, right, bottom)
     region(lx, y, lx + lw, y + 26 * k, "loadsub", true)
 end
 
+---------------------------------------------------------------------------
+-- play history (recent files, saved to history_file)
+---------------------------------------------------------------------------
+local H = { list = {}, path = nil, dirty = false, loaded = false }
+
+local function history_path()
+    if H.path == nil then
+        local ok, res = pcall(mp.command_native, { "expand-path", opts.history_file })
+        H.path = (ok and type(res) == "string" and res ~= "") and res or false
+    end
+    return H.path
+end
+
+-- mpv's own watch history (save-watch-history=yes): JSON lines {time, path, title?}
+local function mpv_history_enabled()
+    local src = tostring(opts.history_source):lower():match("^%s*(%a+)") or "auto"
+    if src == "own" then return false end
+    local v = get("options/save-watch-history")
+    return v == "yes" or v == "true"
+end
+
+local function mpv_history_read()
+    local want = get("options/watch-history-path")
+    if not want or want == "" then want = "~~state/watch_history.jsonl" end
+    local ok, fp = pcall(mp.command_native, { "expand-path", want })
+    if not ok or type(fp) ~= "string" or fp == "" then return end
+    local fh = io.open(fp, "r")
+    if not fh then return end
+    local rows = {}
+    for line in fh:lines() do
+        if line:find("{", 1, true) then
+            local ok2, e = pcall(utils.parse_json, line)
+            if ok2 and type(e) == "table" and type(e.path) == "string" then rows[#rows + 1] = e end
+        end
+    end
+    fh:close()
+    local list, seen = {}, {}
+    for i = #rows, 1, -1 do                      -- newest first, one entry per file
+        local e = rows[i]
+        if not seen[e.path] then
+            seen[e.path] = true
+            local title = e.title
+            if not title or title == "" then
+                local _, file = utils.split_path(e.path)
+                title = (file or e.path):gsub("%.[^%.]+$", "")
+            end
+            list[#list + 1] = { path = e.path, title = title, t = tonumber(e.time) or 0, pos = 0, dur = 0 }
+            if #list >= math.max(1, opts.history_max) then break end
+        end
+    end
+    H.list = list
+end
+
+local function history_load()
+    if opts.history and mpv_history_enabled() then
+        if H.reload ~= false then H.reload = false; mpv_history_read() end
+        return
+    end
+    if H.loaded then return end
+    H.loaded = true
+    local fp = history_path()
+    if not fp then return end
+    local fh = io.open(fp, "r")
+    if not fh then return end
+    local txt = fh:read("*a")
+    fh:close()
+    local ok, data = pcall(utils.parse_json, txt)
+    if ok and type(data) == "table" then
+        for _, e in ipairs(data) do
+            if type(e) == "table" and type(e.path) == "string" then H.list[#H.list + 1] = e end
+        end
+    end
+end
+
+local function history_save()
+    if not H.dirty or mpv_history_enabled() then return end
+    local fp = history_path()
+    if not fp then return end
+    local ok, txt = pcall(utils.format_json, H.list)
+    if not ok or not txt then return end
+    local fh = io.open(fp, "w")
+    if not fh then return end
+    fh:write(txt)
+    fh:close()
+    H.dirty = false
+end
+
+local function history_touch()
+    if not opts.history then return end
+    if mpv_history_enabled() then H.reload = true; return end
+    history_load()
+    local path = mp.get_property("path")
+    if not path or path == "" then return end
+    local title = mp.get_property("media-title") or path
+    local pos = mp.get_property_number("time-pos")
+    local dur = mp.get_property_number("duration")
+    for i = #H.list, 1, -1 do
+        if H.list[i].path == path then table.remove(H.list, i) end
+    end
+    table.insert(H.list, 1, { path = path, title = title, pos = pos or 0, dur = dur or 0, t = os.time() })
+    while #H.list > math.max(1, opts.history_max) do table.remove(H.list) end
+    H.dirty = true
+end
+
+-- remember where the current file is (called periodically and when it ends)
+local function history_pos()
+    if not opts.history or not H.loaded or not H.list[1] or mpv_history_enabled() then return end
+    local path = mp.get_property("path")
+    if path ~= H.list[1].path then return end
+    local pos = mp.get_property_number("time-pos")
+    local dur = mp.get_property_number("duration")
+    if pos then
+        H.list[1].pos = pos
+        if dur then H.list[1].dur = dur end
+        H.dirty = true
+    end
+end
+
+local function ago(t)
+    local d = os.time() - (t or 0)
+    if d < 90 then return "now" end
+    if d < 3600 then return math.floor(d / 60 + 0.5) .. "m" end
+    if d < 86400 then return math.floor(d / 3600 + 0.5) .. "h" end
+    return math.floor(d / 86400 + 0.5) .. "d"
+end
+
+local function history_play(idx)
+    local e = H.list[idx]
+    if not e then return end
+    local cmd = { name = "loadfile", url = e.path, flags = "replace" }
+    if opts.history_resume and (e.pos or 0) > 10 and (e.dur or 0) > 0 and e.pos < e.dur - 15 then
+        cmd.options = "start=" .. string.format("%.1f", e.pos)
+    end
+    mp.command_native(cmd)
+end
+
 local function draw_drawer(ctx)
     local fk, w, h = ctx.k, ctx.w, ctx.h
     local k = fk * opts.panel_scale
@@ -1343,7 +1484,7 @@ local function draw_drawer(ctx)
         T(x, y, an, fs, str, rgb, op, bold, nil, not opts.panel_text_shadow)
     end
     local x0 = w * 0.04
-    local W = 310 * k
+    local W = (opts.history and 360 or 310) * k
     local y0 = h * 0.12
     local Hd = h * 0.46 * opts.panel_scale
     local P = 12 * k
@@ -1358,8 +1499,9 @@ local function draw_drawer(ctx)
     local ph = opts.panel_pill_height * k
     local tab_y, tab_h = y0 + P, ph
     shape(rrect(x0 + P, tab_y, x1 - P, tab_y + tab_h + 6 * k, (tab_h + 6 * k) / 2), "FFFFFF", 0.08)
-    local tw = (W - 2 * P - 6 * k) / 2
     local tabs = { { "playlist", "Playlist" .. MID .. #playlist }, { "chapters", "Chapters" .. MID .. #chapters } }
+    if opts.history then tabs[3] = { "history", "History" } end
+    local tw = (W - 2 * P - 6 * k) / #tabs
     for i, t in ipairs(tabs) do
         local tx0 = x0 + P + 3 * k + (i - 1) * tw
         local sel = S.drawer == t[1]
@@ -1374,7 +1516,14 @@ local function draw_drawer(ctx)
     local visible = math.max(1, math.floor((y1 - P - ly) / rowh))
     local items = {}
     local cur_ch = mp.get_property_number("chapter") or -1
-    if S.drawer == "chapters" then
+    if S.drawer == "history" then
+        history_load()
+        local curp = mp.get_property("path")
+        for i, e in ipairs(H.list) do
+            items[i] = { name = e.title or e.path, right = (e.path == curp) and "\226\150\182" or ago(e.t),
+                         cur = e.path == curp, rname = "hi:" .. i }
+        end
+    elseif S.drawer == "chapters" then
         for i, c in ipairs(chapters) do
             local nm = (c.title and c.title ~= "") and c.title or ("Chapter " .. i)
             items[i] = { name = nm, right = fmt(c.time), cur = (i - 1) == cur_ch, rname = "ch:" .. (i - 1) }
@@ -1392,7 +1541,7 @@ local function draw_drawer(ctx)
     local maxscroll = math.max(0, #items - visible)
     S.scroll = clamp(S.scroll, 0, maxscroll)
     if #items == 0 then
-        PT(x0 + W / 2, ly + 24 * k, 5, 14 * fk, S.drawer == "chapters" and "No chapters in this file" or "Playlist is empty", "C4C4C4", 1)
+        PT(x0 + W / 2, ly + 24 * k, 5, 14 * fk, S.drawer == "history" and "No history yet" or (S.drawer == "chapters" and "No chapters in this file" or "Playlist is empty"), "C4C4C4", 1)
     end
     for i = 1, math.min(visible, #items - S.scroll) do
         local it = items[i + S.scroll]
@@ -2174,7 +2323,8 @@ local function act(name)
         bump(prop, arg:sub(2, 2) == "+" and 0.05 or -0.05)
     elseif kind == "ch" then mp.set_property_number("chapter", tonumber(arg))
     elseif kind == "pl" then mp.commandv("playlist-play-index", arg)
-    elseif kind == "tab" then S.drawer = arg; S.scroll = 0
+    elseif kind == "hi" then history_play(tonumber(arg))
+    elseif kind == "tab" then S.drawer = arg; S.scroll = 0; if arg == "history" then H.reload = true end
     elseif kind == "ctx" then ctx_activate(arg)
     end
 end
@@ -2251,7 +2401,7 @@ mp.observe_property("video-params", "native", function() refresh_info() end)
 mp.observe_property("media-title", "string", function() refresh_info() end)
 mp.observe_property("chapter-list", "native", function() refresh_chapters() end)
 
-local VERSION = "v2.45"
+local VERSION = "v2.47"
 local layout_known = false
 for _, v in ipairs(LAYOUTS) do if v == opts.layout then layout_known = true end end
 mp.msg.info("snad-osc " .. VERSION .. "  layout=" .. S.layout ..
@@ -2271,9 +2421,14 @@ mp.register_event("file-loaded", function()
     end
     refresh_chapters()
     refresh_info()
+    history_touch()
+    history_save()
     show()
 end)
 mp.register_event("end-file", clear_overlay)
+mp.register_event("end-file", function() history_pos(); history_save() end)
+mp.register_event("shutdown", function() history_pos(); history_save() end)
+mp.add_periodic_timer(15, function() history_pos(); history_save() end)
 
 -- nothing loaded: let mpv's stock OSC draw its logo; take over again once a file loads
 mp.observe_property("idle-active", "bool", function(_, idle)
