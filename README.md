@@ -57,7 +57,13 @@ mpv/
 #### **Basic key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY_basic.md)
 #### **A Complete key guide -->** [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)
 -------------------------------------
-**Simple Interface**<br/>
+**New Interface**<br/>
+<img src="https://github.com/thisisshihan/screenshots/blob/master/new_1.jpg" width="800">
+<img src="https://github.com/thisisshihan/screenshots/blob/master/new_2.jpg" width="800">
+<img src="https://github.com/thisisshihan/screenshots/blob/master/new_3.jpg" width="800">
+<img src="https://github.com/thisisshihan/screenshots/blob/master/new_4.jpg" width="800">
+
+**Simple Default Interface**<br/>
 <img src="https://github.com/thisisshihan/screenshots/blob/master/mpv.interface2.png" width="800">
 
 ##
