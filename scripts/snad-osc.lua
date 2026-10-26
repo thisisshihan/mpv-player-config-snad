@@ -1,218 +1,312 @@
--- snad-osc.lua script written by snad
+-- this lua script written by snad
 -- this lua is a part of
 -- https://github.com/thisisshihan/mpv-player-config-snad
--- Config file: script-opts/snad_osc.conf
---
--- Features (all layouts): title, quality badges, chapter-segmented seek bar with buffer, hover
--- time / chapter (+ real thumbnails when the "thumbfast" script is installed), elapsed/remaining
--- toggle, prev/next, skip back/forward, volume slider + mute, one tracks button (subtitle / audio / speed menu) with
--- track lists and delay steppers, load-subtitle button (Windows), loop, playlist + chapters drawer,
--- fullscreen, clock with "Ends at", pin-on-top / minimize / maximize / close.
 
-local mp = require "mp"
-local utils = require "mp.utils"
+--[[
+    podcast.lua - RSS Podcast Feed Reader for mpv
+    ------------------------------------------------
+    Author: snad
 
-local opts = {
-    layout = "streamer",        -- streamer | pill | center | default (default = mpv's own OSC)
-    accent = "1E9BE9",          -- RRGGBB
-    font = "Segoe UI",
-    symbol_font = "Segoe UI Symbol",
-    scale = 0.85,               -- overall UI size multiplier
-    hide_timeout = 3,           -- seconds of inactivity before the UI hides
-    via = "mpv",                -- text after "via" in the info line
-    use_12h = true,             -- 4:58 pm clock (false = 16:58)
-    skip_seconds = 10,          -- back/forward button step
-    sub_lift = 22,              -- move subtitles up by this % of the window height while the controls are visible (0 = off)
-    show_playlist_pos = true,   -- [02/10] next to the title when the playlist has more than one item
-    context_menu = true,        -- right-click opens a themed copy of mpv's context menu (no = keep the native one)
-    ctx_font_size = 13,         -- context menu text size (before the global scale)
-    ctx_row_height = 30,        -- context menu row height
-    ctx_shortcuts = true,
-    ctx_shortcut_keys = 2,      -- max key bindings shown per entry (0 = same as ctx_shortcuts=no)
-    ctx_min_width = 150,        -- narrowest menu panel
-    ctx_max_width = 280,        -- widest menu panel (longer titles are cut with ...)       -- show key bindings on the right
-    idle_logo = true,           -- empty player (nothing loaded): hand over to mpv's own OSC so its logo shows (needs osc=yes in mpv.conf)
-    seek_wave = false,          -- Android-style animated wavy seek bar (played part waves, knob glows)
-    wave_colors = "3B9DFF,9B5CF6,FF3B5C", -- gradient along the played part: comma-separated RRGGBB list
-    wave_style = "fill",        -- fill = layered translucent humps over a white line (Android music-player look) | line = single wavy line
-    wave_opacity = 0.65,        -- opacity of the humps (fill style)
-    wave_baseline = "FFFFFF",   -- colour of the straight line under the humps (fill style); empty = follow the gradient
-    wave_amplitude = 12,         -- wave height in pixels (before the global scale)
-    wave_length = 34,           -- distance between wave crests
-    wave_speed = 1.0,           -- wave travel speed (0 = still)
-    wave_fps = 20,              -- animation smoothness (frames per second while playing); lower = lighter
-    wave_thickness = 3.5,         -- line thickness
-    wave_flat_when_paused = true,  -- the wave settles to a straight line while paused
-    show_chapter_buttons = true, -- previous / next CHAPTER buttons (|< >| icons) next to the playlist buttons (single triangle)
-    disabled_color = "6B7078",  -- colour of a button that cannot be used now (no chapters, no playlist ...)
-    history = true,             -- "History" tab in the playlist drawer (recently played files, kept between sessions)
-    history_source = "auto",    -- auto | mpv | own: auto uses mpv's built-in watch history when save-watch-history=yes is set in mpv.conf, otherwise a list kept by this script
-    history_max = 50,           -- how many entries to keep
-    history_resume = true,      -- picking an entry resumes where you stopped
-    history_file = "~~/snad-osc-history.json", -- where the list is stored (~~/ = your mpv config folder)
-    show_clock = true,
-    active_style = "border",    -- how a toggled-on button looks (tracks / loop / playlist / fullscreen / volume): border | fill | both | none
-    active_fill = "darkglass",  -- fill look for active_style=fill|both: dark | glass | darkglass
-    active_fill_color = "",     -- fill colour (RRGGBB); empty = taken from active_fill
-    active_fill_opacity = -1,   -- fill opacity 0..1; -1 = taken from active_fill
-    highlight_active = true,    -- accent-colour the tracks / loop icons when subtitles, non-1x speed or loop are active (open panels always get a ring)
-    title_pinned = false,       -- keep the top-left title / path (with [02/10]) visible when the controls are hidden (click it to toggle)
-    clock_pinned = false,       -- keep the clock + "Ends at" on screen when the controls are hidden (click the clock to toggle)
-    show_window_controls = true,
-    thumbfast = true,           -- use the thumbfast script for hover thumbnails if present
-    volume_style = "vertical",  -- vertical = click the speaker to open a vertical slider popup | horizontal = inline slider
-    winctl_color = "FFFFFF",    -- background of the pin / minimize / maximize / close group (RRGGBB)
-    winctl_opacity = 0.22,      -- 0 = no background, 1 = solid
-    show_layout_hint = false,   -- show "snad-osc vX  layout: name" on screen when a file starts (for troubleshooting)
-    click_to_pause = false,    -- click on the video (not on a control) toggles pause
+    WHAT IT DOES
+    - Drag & drop (or open with mpv) a .pcst or .snad file that
+      contains one
+      or more podcast RSS feed URLs (one URL per line, "#" = comment).
+    - The script downloads each feed with curl, parses out the episodes
+      (title + audio/video enclosure URL + pubDate), and loads them into
+      mpv's playlist in order (newest-first as published in the feed).
+    - Press ALT+P (already bound in this user's input.conf to
+      `script-binding podcast_toggle`) to open/close an on-screen podcast
+      menu that lists episodes and lets you jump to any of them.
 
-    -- tracks menu + playlist/chapters drawer (fonts are never scaled by these)
-    panel_scale = 0.85,         -- geometry scale of the panels; 1 = original size, 0.7 = compact
-    panel_round_rows = true,    -- fully rounded (pill) rows and round number badges in the menus / playlist drawer
-    panel_row_height = 38,      -- height of track / playlist / chapter rows
-    panel_pill_height = 26,     -- speed chips, tabs and +/- delay buttons
-    panel_text_shadow = false,  -- text shadow inside the panels
-    panel_style = "dark",       -- dark | glass (white, see-through) | darkglass (dark, see-through)
-    panel_blur = false,         -- EXPERIMENTAL: blur the video behind the panels (needs vo=gpu or gpu-next)
-    panel_blur_radius = 10,     -- blur strength in pixels
-    panel_blur_taps = 32,       -- blur quality (samples per pixel): 16 fast ... 48 smooth
-    panel_style_all = false,    -- yes = window controls, info pills and seek tooltip share the panel_* look (style / colour / opacity / blur)
-    panel_color = "",           -- background colour (RRGGBB); empty = taken from panel_style
-    panel_opacity = -1,         -- background opacity 0..1; -1 = taken from panel_style
+    REQUIREMENTS
+    - curl.exe must be reachable (built into Windows 10 1803+ / Windows 11
+      at C:\Windows\System32\curl.exe). No extra install needed normally.
+    - yt-dlp.exe is OPTIONAL. Episodes loaded through this script skip it
+      by default (mpv opens the direct enclosure URL itself - see the
+      ytdl: directive below). It's only used if you explicitly turn it
+      back on for a specific feed with "ytdl: yes".
 
-    -- info pills (4K / HDR / audio / CC / speed / loop)
-    pill_font_size = 12,        -- text size (before the global scale)
-    pill_height = 17,           -- pill height
-    pill_padding = 8,           -- left/right padding inside the pill
-    pill_gap = 5,               -- space between pills
-    pill_bold = true,
-    pill_color = "FFFFFF",      -- fill colour (RRGGBB)
-    pill_opacity = 0.22,        -- fill opacity: 0 = invisible, 1 = solid
-    pill_text_color = "FFFFFF", -- text colour (use a dark colour with a high pill_opacity)
-    pill_text_opacity = 1,
-    pill_border_width = 0,      -- outline thickness, 0 = none
-    pill_border_color = "FFFFFF",
-    pill_border_opacity = 0.6,
-    tip_position = "below",     -- seek hover time tooltip: above | below the seek bar (thumbnails always go above)
-    tip_gap = 8,                -- distance between the seek bar and the tooltip
-    tip_font_size = 13,         -- seek hover tooltip: time text size (before the global scale)
-    tip_height = 21,            -- tooltip height (add ~14 more when a chapter name is shown)
-    tip_color = "FFFFFF",       -- tooltip fill colour
-    tip_opacity = 0.22,         -- tooltip fill opacity: 0 = invisible, 1 = solid
-    tip_text_color = "FFFFFF",
-    tip_shadow = false,         -- text shadow in the tooltip
-    pill_show_fps = true,       -- frame rate (24 / 29.97 / 60 fps)
-    pill_show_resolution = true,
-    pill_show_hdr = true,       -- HDR10 / Dolby Vision / Atmos
-    pill_show_vcodec = true,    -- video codec (H.264, HEVC, AV1 ...)
-    pill_show_audio = true,     -- audio language + channels
-    pill_show_acodec = true,    -- audio codec (AAC, E-AC-3, DTS ...)
-    pill_show_subtitle = true,  -- currently selected subtitle track
-    pill_show_speed = true,     -- only shown when speed is not 1x
-    pill_show_loop = true,      -- only shown when loop is on
-    pill_show_chapter = true,   -- chapter pill (streamer layout)
-}
--- Own config reader (instead of mp.options) so comments may sit at the END of a line:
---     scale=0.85        # overall size
--- A comment starts at a "#" that follows whitespace; whole-line "#" comments work too.
--- --script-opts=snad_osc-<name>=<value> on the command line is honoured as well.
-local function convert(key, raw)
-    local def = opts[key]
-    raw = raw:match("^%s*(.-)%s*$")
-    if type(def) == "boolean" then
-        local v = raw:lower()
-        return v == "yes" or v == "true" or v == "1" or v == "on"
-    elseif type(def) == "number" then
-        return tonumber(raw) or def
+    EPISODE CACHING
+    - Episodes loaded through this script are cached whole (up to 512MB
+      via mpv's own built-in demuxer cache, not a separate downloaded
+      file) as they play - both ahead of your current position AND
+      behind it, so once an episode has fully buffered, playback keeps
+      going even if your connection drops, and seeking backward to
+      anything already played is instant instead of re-fetching over
+      the network. This isn't configurable per feed - it's applied
+      automatically to every episode this script loads.
+
+    PLAYLIST FILE
+    - The playlist built from a feed is saved as an .m3u8 in your Music
+      folder (%USERPROFILE%\Music), named after the podcast - e.g.
+      "Sample Show.m3u8". Loading the same podcast again overwrites that
+      file rather than creating a new one each time, and refreshing from
+      the menu (R) updates it whenever new episodes are appended.
+    - To use a different folder, set PLAYLIST_DIR near the top of this
+      script to a full path. If the chosen folder can't be written to
+      (missing/read-only), it falls back to %TEMP%.
+
+    [WORKAROUND] TLS VERIFICATION IS DISABLED
+    - This script currently disables TLS certificate verification for all
+      https streams mpv opens directly (mpv-level libcurl networking, not
+      curl.exe/yt-dlp.exe), to work around a missing/broken CA bundle in
+      this mpv build. Search this file for "[WORKAROUND]" for the full
+      explanation and the proper long-term fix (a tls-ca-file in mpv.conf).
+      This is a security trade-off, not a permanent solution.
+
+    INSTALL
+    - Save this file as:  portable_config\scripts\podcast.lua
+
+    USAGE
+    - Make a text file, e.g. feeds.pcst (or feeds.snad), containing:
+        https://example.com/shows/sample-podcast/feed.rss
+    - Drag that file onto the mpv window (or run: mpv.exe feeds.pcst)
+      The mpv window opens instantly with a dark "loading" screen while
+      the feed downloads in the background, then swaps in the episodes
+      once ready - it no longer waits until the feed is fully loaded
+      before showing anything.
+    - Press ALT+P to open the podcast episode menu.
+      Inside the menu: UP/DOWN (or K/J) to move, ENTER to play, ESC to close.
+
+    FILTERING EPISODES (feeds.pcst syntax)
+    - Lines starting with "#" are comments (ignored).
+    - A line starting with "filter:" (alias "include:") sets a list of
+      keywords - only episodes whose TITLE contains at least one of them
+      will be loaded. Comma-separated, case-insensitive, plain substring
+      match (not regex).
+    - A line starting with "exclude:" sets a list of keywords - any
+      episode whose title contains ANY of them is skipped, even if it
+      also matches an include filter.
+    - These filters are "sticky": once set, they apply to every feed URL
+      listed below them, until changed again (or cleared with an empty
+      value, e.g. "filter:" with nothing after the colon).
+    - You can also attach a ONE-OFF filter to a single feed URL inline,
+      which overrides (does not add to) the sticky filters for that URL
+      only:
+          https://example.com/feed.rss | filter=keyword1, keyword2
+          https://example.com/feed.rss | exclude=ads, promo
+
+      Example feeds.pcst:
+        # only full-show episodes
+        filter: FULL_SHOW, full show
+        exclude: promo, ad break
+        https://example.com/shows/sample-podcast/feed.rss
+
+        # a second feed with no filtering (clear the sticky filters first)
+        filter:
+        exclude:
+        https://example.com/another-podcast.rss
+
+        # a third feed with its own one-off inline filter only
+        https://example.com/yet-another.rss | filter=interview
+
+    SKIPPING INTROS / ADS (start:/skip-intro: directive)
+    - A line starting with "start:" (alias "skip-intro:") makes every
+      episode below it begin playback N seconds in, skipping a fixed-
+      length intro or ad block. Accepts plain seconds ("180"), seconds
+      with a trailing "s" ("180s"), or "mm:ss" / "h:mm:ss" ("3:00").
+    - Sticky, same as filter:/exclude: - applies to everything below it
+      until changed (use "start:" with nothing after the colon, or
+      "start: 0", to turn it back off).
+    - Can also be set inline per-URL: "| start=180" or "| skip-intro=3:00"
+
+      Example:
+        start: 180
+        https://example.com/shows/sample-podcast/feed.rss
+
+        start: 0
+        https://example.com/another-podcast.rss | start=45
+
+    DISABLING YT-DLP (ytdl: directive)
+    - By default, episodes loaded through this script skip yt-dlp
+      entirely and let mpv open the enclosure URL directly. This is safe
+      for the vast majority of podcast feeds, since RSS enclosures are
+      already direct, playable media files - yt-dlp was only ever needed
+      as a fallback for non-direct links (e.g. a page URL that needs
+      extraction), and mpv opening the file itself is faster since it
+      skips the extra subprocess call.
+    - If a particular feed's enclosure links actually need yt-dlp (rare,
+      but possible for some indie feeds that link to a hosting page
+      instead of a direct file), turn it back on for that feed with:
+        ytdl: yes
+      Same sticky/inline rules as the other directives apply - "ytdl: no"
+      (or nothing after the colon) turns it back off again, and
+      "| ytdl=yes" / "| ytdl=no" can be set inline per-URL.
+    - This only affects URLs loaded through this script. Any other file
+      you open in mpv separately (YouTube links, etc.) is completely
+      unaffected and still goes through yt-dlp normally.
+
+      Example:
+        ytdl: yes
+        https://example.com/feed-that-needs-extraction.rss
+
+        ytdl: no
+        https://example.com/shows/sample-podcast/feed.rss
+
+    REMOVING DUPLICATE EPISODES (remove-duplicates: directive)
+    - A line starting with "remove-duplicates:" (alias "dedupe:") drops
+      any episode whose title (case-insensitive, whitespace-trimmed)
+      has already been seen earlier in this load - whether that's an
+      earlier episode in the same feed, or from a different feed listed
+      above it in the same file. Useful for feeds that list the same
+      episode twice (e.g. a "best of" feed overlapping the main one).
+    - Off by default (duplicates are kept). Sticky, same as the other
+      directives - "remove-duplicates: no" turns it back off, and
+      "| remove-duplicates=yes" / "| dedupe=no" work inline per-URL too.
+
+      Example:
+        remove-duplicates: yes
+        https://example.com/shows/sample-podcast/feed.rss
+
+    NOTES ON input.conf
+    - This script does NOT bind any keys itself. It only registers the
+      `podcast_toggle` script-binding, which your input.conf already maps
+      to ALT+P. If you ever want a different key, just change the mapping
+      in input.conf; nothing here needs to change.
+]]
+
+local utils = require 'mp.utils'
+local msg   = require 'mp.msg'
+
+----------------------------------------------------------------------
+-- [WORKAROUND] Broken/missing CA bundle in this mpv build
+----------------------------------------------------------------------
+--[[
+    *** WORKAROUND - NOT A REAL FIX - SECURITY TRADE-OFF ***
+
+    Symptom seen in mpv-debug.log: every single HTTPS stream mpv tries to
+    open directly fails with:
+        SSL peer certificate or SSH remote key was not OK
+        TLS certificate verification failed.
+    ...even though curl.exe (used by this script to fetch the RSS feed)
+    and yt-dlp.exe (mpv's automatic fallback) both connect to the exact
+    same hosts without any problem. That's because curl.exe and yt-dlp
+    use their own certificate stores, while mpv's bundled libcurl
+    networking apparently can't find/validate one at all right now. The
+    result: mpv fails to open every episode URL, falls back to yt-dlp,
+    which resolves a working direct URL - but then mpv fails to open
+    THAT url too, for the same reason, and the track gets skipped.
+
+    WHAT THIS BLOCK DOES: disables TLS certificate verification for
+    every https stream mpv opens directly - not just podcasts, ANY
+    https URL, for as long as this script is loaded. With verification
+    off, mpv can no longer detect a genuine man-in-the-middle attack on
+    those connections.
+
+    PROPER LONG-TERM FIX (recommended - do this, then delete this block):
+      1. Download cacert.pem from https://curl.se/docs/caextract.html
+      2. Put it in your portable_config folder
+      3. Add this line to mpv.conf:
+             tls-ca-file=~~/cacert.pem
+      4. Confirm streams open with no TLS errors in the debug log, THEN
+         delete this entire [WORKAROUND] block from podcast.lua.
+]]
+if mp.get_property("tls-verify") ~= "no" then
+    mp.set_property("options/tls-verify", "no") -- WORKAROUND, see block comment above
+    msg.warn("[podcast] WORKAROUND ACTIVE: tls-verify disabled (missing/broken CA bundle) - see [WORKAROUND] comment near the top of podcast.lua")
+end
+
+----------------------------------------------------------------------
+-- Config
+----------------------------------------------------------------------
+
+local CURL_TIMEOUT = "20" -- seconds
+
+-- Where the generated playlist (.m3u8) is saved. Leave "" to use your
+-- Windows Music folder (%USERPROFILE%\Music); set a full path (e.g.
+-- "D:\\Podcasts") to use a different folder instead. If the chosen
+-- folder can't be written to, %TEMP% is used as a fallback.
+local PLAYLIST_DIR = ""
+
+----------------------------------------------------------------------
+-- State
+----------------------------------------------------------------------
+
+-- episodes[i] = { title = "...", url = "...", pubdate = "...", feed = "Feed Title", start = 0 }
+local episodes = {}
+local feed_titles = {} -- list of loaded feed titles, for the header
+
+-- url -> start-offset-in-seconds, used by the on_load hook to auto-seek
+-- past intros/ads (see start:/skip-intro: directive in the feeds file)
+local url_to_start = {}
+
+-- url -> true/false, whether yt-dlp is allowed to run for this episode.
+-- Defaults to false for everything loaded through this script (see
+-- ytdl: directive) since podcast enclosures are direct media files and
+-- mpv can open them on its own - yt-dlp is only needed as a fallback for
+-- non-direct links, which is rare for podcast RSS.
+local url_to_ytdl = {}
+
+-- lowercased/trimmed title -> true, used to drop duplicate-titled
+-- episodes across the whole load session (see remove-duplicates: directive)
+local seen_titles = {}
+
+-- path of the feeds file that was last opened, so the menu's Refresh
+-- action knows what to re-fetch
+local last_loaded_path = nil
+
+local menu_active = false
+local menu_selected = 1
+local menu_overlay = nil
+local menu_keys_bound = false
+
+-- animated centered "Loading..." overlay shown while feeds are fetching
+local loading_overlay = nil
+local loading_timer = nil
+local loading_dot_count = 0
+
+----------------------------------------------------------------------
+-- Small helpers
+----------------------------------------------------------------------
+
+local function trim(s)
+    return (s or ""):match("^%s*(.-)%s*$")
+end
+
+-- Parses a duration string into whole seconds. Accepts:
+--   "180"       -> 180
+--   "180s"      -> 180
+--   "3:00"      -> 180  (mm:ss)
+--   "1:02:03"   -> 3723 (h:mm:ss)
+-- Returns nil if it can't parse the string.
+local function parse_duration(s)
+    s = trim(s)
+    if s == "" then return nil end
+    local h, m, sec = s:match("^(%d+):(%d%d):(%d%d)$")
+    if h then return tonumber(h) * 3600 + tonumber(m) * 60 + tonumber(sec) end
+    local m2, sec2 = s:match("^(%d+):(%d%d)$")
+    if m2 then return tonumber(m2) * 60 + tonumber(sec2) end
+    local n = s:match("^(%d+%.?%d*)s?$")
+    if n then return tonumber(n) end
+    return nil
+end
+
+-- Formats whole seconds as "m:ss" or "h:mm:ss" for display in the menu.
+local function format_seconds(sec)
+    sec = math.floor(sec + 0.5)
+    local h = math.floor(sec / 3600)
+    local m = math.floor((sec % 3600) / 60)
+    local s2 = sec % 60
+    if h > 0 then
+        return string.format("%d:%02d:%02d", h, m, s2)
     end
-    return (raw:gsub('^"(.*)"$', "%1"))
+    return string.format("%d:%02d", m, s2)
 end
 
-local function load_options()
-    local path = mp.find_config_file and mp.find_config_file("script-opts/snad_osc.conf")
-    local fh = path and io.open(path, "r")
-    if fh then
-        for raw in fh:lines() do
-            local line = raw:gsub("\r$", ""):gsub("^\239\187\191", "")
-            if not line:match("^%s*#") then
-                line = line:gsub("%s+#.*$", "")
-                local key, val = line:match("^%s*([%w_]+)%s*=%s*(.-)%s*$")
-                if key and opts[key] ~= nil then opts[key] = convert(key, val) end
-            end
-        end
-        fh:close()
-    end
-    local ok, so = pcall(mp.get_property_native, "options/script-opts")
-    if ok and type(so) == "table" then
-        for k, v in pairs(so) do
-            local key = tostring(k):match("^snad_osc%-(.+)$")
-            if key and opts[key] ~= nil then opts[key] = convert(key, tostring(v)) end
-        end
-    end
-end
-load_options()
-
--- tolerate stray text after the layout name
-local function norm_layout(v)
-    v = tostring(v):gsub("#.*$", "")
-    return (v:match("^%s*([%w_]+)") or ""):lower()
-end
-opts.layout = norm_layout(opts.layout)
-
--- layout=default: do nothing at all, so mpv's built-in OSC (script-opts/osc.conf) is used
-if opts.layout == "default" then
-    return
+local function decode_entities(s)
+    if not s then return "" end
+    s = s:gsub("&lt;", "<")
+    s = s:gsub("&gt;", ">")
+    s = s:gsub("&quot;", '"')
+    s = s:gsub("&apos;", "'")
+    s = s:gsub("&#0*39;", "'")
+    s = s:gsub("&#0*34;", '"')
+    s = s:gsub("&amp;", "&") -- must be last
+    return s
 end
 
-local LAYOUTS = { "streamer", "pill", "center" }
-local function valid_layout(n)
-    for _, v in ipairs(LAYOUTS) do if v == n then return n end end
-    return "streamer"
-end
-
--- background of the tracks menu, playlist/chapters drawer and volume popup
-local function panel_bg()
-    local st = tostring(opts.panel_style):lower():gsub("[%s_%-]", ""):match("^%a+") or "dark"
-    local glass, dglass = st == "glass", st == "darkglass"
-    local c = (opts.panel_color ~= "" and opts.panel_color) or (glass and "FFFFFF" or "0E141C")
-    local o = opts.panel_opacity
-    if o < 0 then
-        if opts.panel_blur then
-            o = glass and 0.25 or (dglass and 0.35 or 0.6)
-        else
-            o = glass and 0.2 or (dglass and 0.55 or 0.92)
-        end
-    end
-    return c, o
-end
-
--- colour/opacity for window controls, pills and tooltip: their own options, or the panel look
-local function skin(c, o)
-    if opts.panel_style_all then return panel_bg() end
-    return c, o
-end
-
-local DOT = "  \226\128\162  "      -- "  •  "
-local MID = " \194\183 "            -- " · "
-local MINUS = "\226\136\146"        -- "−"
-local ELLIPSIS = "\226\128\166"     -- "…"
-local CRUMB = " \226\128\186 "      -- " › "
-
----------------------------------------------------------------------------
--- helpers
----------------------------------------------------------------------------
-local function bgr(hex)
-    local r, g, b = tostring(hex):match("(%x%x)(%x%x)(%x%x)")
-    if not r then return "FFFFFF" end
-    return b .. g .. r
-end
-
-local function A(opacity)
-    opacity = math.max(0, math.min(1, opacity))
-    return string.format("%02X", math.floor((1 - opacity) * 255 + 0.5))
-end
-
-local function esc(s)
+local function ass_escape(s)
+    if not s then return "" end
     s = s:gsub("\\", "\\\\")
     s = s:gsub("{", "\\{")
     s = s:gsub("}", "\\}")
@@ -220,2249 +314,958 @@ local function esc(s)
     return s
 end
 
-local function ulen(s)
-    local _, n = s:gsub("[^\128-\191]", "")
-    return n
-end
-
-local function textw(s, fs, bold)
-    return ulen(s) * fs * (bold and 0.58 or 0.54)
-end
-
-local function fit(s, fs, maxw, bold) -- truncate with ellipsis to an estimated width
-    if textw(s, fs, bold) <= maxw then return s end
-    local max = math.max(1, math.floor(maxw / (fs * (bold and 0.58 or 0.54))) - 1)
-    local out, n = {}, 0
-    for ch in s:gmatch("[%z\1-\127\194-\244][\128-\191]*") do
-        n = n + 1
-        if n > max then break end
-        out[#out + 1] = ch
-    end
-    return table.concat(out) .. ELLIPSIS
-end
-
-local function fmt(t)
-    t = math.max(0, math.floor((t or 0) + 0.5))
-    local hh = math.floor(t / 3600)
-    local mm = math.floor((t % 3600) / 60)
-    local ss = t % 60
-    if hh > 0 then return string.format("%d:%02d:%02d", hh, mm, ss) end
-    return string.format("%d:%02d", mm, ss)
-end
-
-local function clock(t)
-    if opts.use_12h then
-        local s = os.date("%I:%M %p", t)
-        s = s:gsub("^0", "")
-        return s:lower()
-    end
-    return os.date("%H:%M", t)
-end
-
-local function f(n) return string.format("%.1f", n) end
-local function clamp(v, a, b) return math.max(a, math.min(b, v)) end
-
--- ASS drawing paths ---------------------------------------------------------
-local function rrect(x0, y0, x1, y1, r)
-    r = math.max(0, math.min(r, (x1 - x0) / 2, (y1 - y0) / 2))
-    local c = r * 0.5523
-    return table.concat({
-        "m", f(x0 + r), f(y0),
-        "l", f(x1 - r), f(y0),
-        "b", f(x1 - r + c), f(y0), f(x1), f(y0 + r - c), f(x1), f(y0 + r),
-        "l", f(x1), f(y1 - r),
-        "b", f(x1), f(y1 - r + c), f(x1 - r + c), f(y1), f(x1 - r), f(y1),
-        "l", f(x0 + r), f(y1),
-        "b", f(x0 + r - c), f(y1), f(x0), f(y1 - r + c), f(x0), f(y1 - r),
-        "l", f(x0), f(y0 + r),
-        "b", f(x0), f(y0 + r - c), f(x0 + r - c), f(y0), f(x0 + r), f(y0),
-    }, " ")
-end
-
-local function rrect_ccw(x0, y0, x1, y1, r)
-    r = math.max(0, math.min(r, (x1 - x0) / 2, (y1 - y0) / 2))
-    local c = r * 0.5523
-    return table.concat({
-        "m", f(x0 + r), f(y0),
-        "b", f(x0 + r - c), f(y0), f(x0), f(y0 + r - c), f(x0), f(y0 + r),
-        "l", f(x0), f(y1 - r),
-        "b", f(x0), f(y1 - r + c), f(x0 + r - c), f(y1), f(x0 + r), f(y1),
-        "l", f(x1 - r), f(y1),
-        "b", f(x1 - r + c), f(y1), f(x1), f(y1 - r + c), f(x1), f(y1 - r),
-        "l", f(x1), f(y0 + r),
-        "b", f(x1), f(y0 + r - c), f(x1 - r + c), f(y0), f(x1 - r), f(y0),
-        "l", f(x0 + r), f(y0),
-    }, " ")
-end
-
-local function ring(x0, y0, x1, y1, r, t)
-    return rrect(x0, y0, x1, y1, r) .. " " ..
-           rrect_ccw(x0 + t, y0 + t, x1 - t, y1 - t, r - t)
-end
-
-local function rectp(x0, y0, x1, y1)
-    return string.format("m %s %s l %s %s l %s %s l %s %s",
-        f(x0), f(y0), f(x1), f(y0), f(x1), f(y1), f(x0), f(y1))
-end
-
-local function polyp(pts)
-    local t = { "m", f(pts[1]), f(pts[2]) }
-    for i = 3, #pts, 2 do
-        t[#t + 1] = "l"; t[#t + 1] = f(pts[i]); t[#t + 1] = f(pts[i + 1])
-    end
-    return table.concat(t, " ")
-end
-
--- ring sector; angles in degrees (screen coords, clockwise positive); sx = -1 mirrors horizontally
-local function arcp(cx, cy, r, t, a0, a1, sx)
-    sx = sx or 1
-    local n = math.max(6, math.floor(math.abs(a1 - a0) / 10))
-    local ro, ri = r + t / 2, r - t / 2
-    local pts = {}
-    for i = 0, n do
-        local a = math.rad(a0 + (a1 - a0) * i / n)
-        pts[#pts + 1] = cx + sx * ro * math.cos(a)
-        pts[#pts + 1] = cy + ro * math.sin(a)
-    end
-    for i = n, 0, -1 do
-        local a = math.rad(a0 + (a1 - a0) * i / n)
-        pts[#pts + 1] = cx + sx * ri * math.cos(a)
-        pts[#pts + 1] = cy + ri * math.sin(a)
-    end
-    return polyp(pts)
-end
-
-local function linep(x0, y0, x1, y1, t)
-    local dx, dy = x1 - x0, y1 - y0
-    local l = math.sqrt(dx * dx + dy * dy)
-    if l == 0 then l = 1 end
-    local nx, ny = -dy / l * t / 2, dx / l * t / 2
-    return polyp({ x0 + nx, y0 + ny, x1 + nx, y1 + ny, x1 - nx, y1 - ny, x0 - nx, y0 - ny })
-end
-
----------------------------------------------------------------------------
--- state
----------------------------------------------------------------------------
-local ov = mp.create_osd_overlay("ass-events")
-local S = {
-    layout = valid_layout(opts.layout),
-    visible = false, last_move = 0, last_render = 0,
-    mx = -1, my = -1, hover = false,
-    clock_pinned = false, title_pinned = false, pin_sec = -1,
-    drag = nil, pending = nil, paused = false,
-    menu = nil, drawer = nil, scroll = 0,
-    remaining = false,
-    segx = {}, vol = { x0 = 0, x1 = 1, y0 = 0, y1 = 1, vertical = false }, volpop = false,
-    drawer_rect = nil,
-    thumb_t = nil,
-}
-local regions, out = {}, {}
-local grad_cache = {}
-local info = { title = "", year = nil, meta = "", res = nil, hdr = {}, audio = nil, naud = 0, nsub = 0 }
-local chapters = {}
-S.clock_pinned = opts.clock_pinned
-S.title_pinned = opts.title_pinned
-local thumb = { width = 0, height = 0, disabled = true, available = false }
-
-local panel_rects = {}
-local function add_blur_rect(x0, y0, x1, y1, rad)
-    if opts.panel_blur then panel_rects[#panel_rects + 1] = { x0, y0, x1, y1, rad } end
-end
-
-local function inside(x0, y0, x1, y1)
-    return S.hover and S.mx >= x0 and S.mx <= x1 and S.my >= y0 and S.my <= y1
-end
-
-local function region(x0, y0, x1, y1, name, front)
-    local r = { x0 = x0, y0 = y0, x1 = x1, y1 = y1, name = name }
-    if front then table.insert(regions, 1, r) else regions[#regions + 1] = r end
-end
-
-local function hit(x, y)
-    for _, r in ipairs(regions) do
-        if x >= r.x0 and x <= r.x1 and y >= r.y0 and y <= r.y1 then return r.name end
-    end
-end
-
-local function shape(path, rgb, op)
-    out[#out + 1] = string.format(
-        "{\\an7\\pos(0,0)\\p1\\bord0\\shad0\\1c&H%s&\\1a&H%s&}%s{\\p0}",
-        bgr(rgb or "FFFFFF"), A(op or 1), path)
-end
-
-local function T(x, y, an, fs, str, rgb, op, bold, font, noshadow)
-    out[#out + 1] = string.format(
-        "{\\an%d\\pos(%s,%s)\\fn%s\\fs%s\\b%d\\bord0\\shad%s\\1c&H%s&\\1a&H%s&\\4c&H000000&\\4a&H70&}%s",
-        an, f(x), f(y), font or opts.font, f(fs), bold and 1 or 0,
-        noshadow and "0" or f(math.max(1, fs / 14)), bgr(rgb or "FFFFFF"), A(op or 1), esc(str))
-end
-
-local function get(p) return mp.get_property(p) end
-
----------------------------------------------------------------------------
--- media info
----------------------------------------------------------------------------
-local LANG = {
-    eng = "English", jpn = "Japanese", spa = "Spanish", fre = "French", fra = "French",
-    ger = "German", deu = "German", ita = "Italian", por = "Portuguese", rus = "Russian",
-    kor = "Korean", chi = "Chinese", zho = "Chinese", hin = "Hindi", tam = "Tamil",
-    sin = "Sinhala", ara = "Arabic", tur = "Turkish", dut = "Dutch", nld = "Dutch",
-    swe = "Swedish", tha = "Thai", vie = "Vietnamese", pol = "Polish", ind = "Indonesian",
-    may = "Malay", msa = "Malay", en = "English", ja = "Japanese", es = "Spanish",
-    fr = "French", de = "German", it = "Italian", pt = "Portuguese", ru = "Russian",
-    ko = "Korean", zh = "Chinese", hi = "Hindi", ta = "Tamil", si = "Sinhala",
-}
-local LAYOUT_NAME = { [1] = "1.0", [2] = "2.0", [3] = "2.1", [4] = "4.0", [5] = "5.0",
-                      [6] = "5.1", [7] = "6.1", [8] = "7.1" }
-local CODEC_NAME = { subrip = "SRT", ass = "ASS", ssa = "SSA", webvtt = "VTT",
-                     hdmv_pgs_subtitle = "PGS", dvd_subtitle = "VobSub", mov_text = "TX3G",
-                     eac3 = "E-AC-3", ac3 = "AC-3", truehd = "TrueHD", dts = "DTS", aac = "AAC",
-                     flac = "FLAC", opus = "Opus", mp3 = "MP3", vorbis = "Vorbis" }
-local VCODEC = { h264 = "H.264", avc = "H.264", hevc = "HEVC", h265 = "HEVC", av1 = "AV1", vp9 = "VP9",
-                 vp8 = "VP8", mpeg4 = "MPEG-4", mpeg2video = "MPEG-2", vc1 = "VC-1", wmv3 = "WMV",
-                 prores = "ProRes", theora = "Theora" }
-local CUT_TOKENS = { "2160p", "1080p", "720p", "480p", "4k", "uhd", "bluray", "blu ray",
-                     "brrip", "webrip", "web dl", "webdl", "hdr", "dv", "x264", "x265",
-                     "h264", "h265", "hevc", "remux", "atmos" }
-
-local function cleanup_name(fname)
-    local t = fname:gsub("[%._]", " ")
-    local cut, year = #t + 1, nil
-    for pos, y in t:gmatch("()(%d%d%d%d)") do
-        local n = tonumber(y)
-        if n >= 1900 and n <= 2099 then year = y; cut = math.min(cut, pos); break end
-    end
-    local lower = t:lower()
-    for _, tok in ipairs(CUT_TOKENS) do
-        local p = lower:find("[%s%(%[%-]" .. tok:gsub("%-", "%%-"))
-        if p then cut = math.min(cut, p) end
-    end
-    local title = t:sub(1, cut - 1):gsub("[%s%(%[%-]+$", "")
-    if title == "" then title = fname end
-    return title, year
-end
-
-local function track_name(t)
-    local name = t.lang and (LANG[t.lang:lower()] or t.lang:upper()) or nil
-    if not name then name = t.title or ("Track " .. tostring(t.id)) end
-    return name
-end
-
-local function track_detail(t)
-    local parts = {}
-    if t.type == "audio" then
-        local ch = t["demux-channel-count"]
-        if ch then parts[#parts + 1] = LAYOUT_NAME[ch] or (ch .. "ch") end
-        local codec = t.codec and (CODEC_NAME[t.codec] or t.codec:upper())
-        local prof = (t["codec-profile"] or ""):lower()
-        if prof:find("atmos") then codec = (codec or "") .. " Atmos" end
-        if codec and codec ~= "" then parts[#parts + 1] = codec end
-    else
-        parts[#parts + 1] = t.external and "External" or "Embedded"
-        if t.codec then parts[#parts + 1] = CODEC_NAME[t.codec] or t.codec:upper() end
-    end
-    if t.title and t.lang then parts[#parts + 1] = t.title end
-    return table.concat(parts, MID)
-end
-
-local function refresh_chapters()
-    chapters = mp.get_property_native("chapter-list") or {}
-end
-
-local function refresh_info()
-    local fname = get("filename/no-ext") or ""
-    local mt = get("media-title") or fname
-    local year = (get("metadata/by-key/date") or get("metadata/by-key/year") or ""):match("(%d%d%d%d)")
-    local title = mt
-    if mt == fname then
-        local t, y = cleanup_name(fname)
-        title = t
-        year = year or y
-    end
-    info.title, info.year = title, year
-
-    local vw, vh = mp.get_property_number("video-params/w"), mp.get_property_number("video-params/h")
-    info.res = nil
-    if vw and vh then
-        if vh >= 2000 or vw >= 3600 then info.res = "4K"
-        elseif vh >= 1300 or vw >= 2400 then info.res = "1440p"
-        elseif vh >= 1000 or vw >= 1800 then info.res = "1080p"
-        elseif vh >= 700 or vw >= 1200 then info.res = "720p"
-        else info.res = "SD" end
-    end
-
-    local hdr = {}
-    local cm, gm = get("video-params/colormatrix"), get("video-params/gamma")
-    local vprof = (get("current-tracks/video/codec-profile") or ""):lower()
-    local lfn = (get("filename") or ""):lower()
-    if cm == "dolbyvision" or vprof:find("dolby") or vprof:find("dovi") then
-        hdr[#hdr + 1] = "Dolby Vision"
-    elseif gm == "pq" then
-        hdr[#hdr + 1] = lfn:find("hdr10%+") and "HDR10+" or "HDR10"
-    elseif gm == "hlg" then
-        hdr[#hdr + 1] = "HLG"
-    end
-    local aprof = ((get("current-tracks/audio/codec-profile") or "") .. " " ..
-                   (get("current-tracks/audio/title") or "")):lower()
-    if aprof:find("atmos") or lfn:find("atmos") then hdr[#hdr + 1] = "Atmos" end
-    info.hdr = hdr
-    local vc = get("current-tracks/video/codec")
-    info.vcodec = vc and (VCODEC[vc:lower()] or vc:upper()) or nil
-    local ac = get("current-tracks/audio/codec")
-    info.acodec = ac and (CODEC_NAME[ac:lower()] or ac:upper()) or nil
-
-    info.audio = nil
-    local lang = get("current-tracks/audio/lang")
-    local ch = mp.get_property_number("current-tracks/audio/demux-channel-count")
-        or mp.get_property_number("audio-params/channel-count")
-    if lang or ch then
-        local name = lang and (LANG[lang:lower()] or lang:upper()) or "Audio"
-        info.audio = name .. (ch and (" " .. (LAYOUT_NAME[ch] or (ch .. "ch"))) or "")
-    end
-
-    local na, ns = 0, 0
-    for _, t in ipairs(mp.get_property_native("track-list") or {}) do
-        if t.type == "audio" then na = na + 1 elseif t.type == "sub" then ns = ns + 1 end
-    end
-    info.naud, info.nsub = na, ns
-
-    local parts = {}
-    if year then parts[#parts + 1] = year end
-    local genre = get("metadata/by-key/genre")
-    if genre and genre ~= "" then
-        parts[#parts + 1] = (genre:match("^[^,;/]+") or genre):gsub("^%s+", "")
-    else
-        local vf = get("video-format")
-        if vf then parts[#parts + 1] = vf:upper() end
-    end
-    parts[#parts + 1] = "via " .. opts.via
-    info.meta = table.concat(parts, DOT)
-end
-
-local function chapter_label()
-    local idx = mp.get_property_number("chapter")
-    if not idx or idx < 0 or #chapters == 0 then return nil end
-    local c = chapters[idx + 1]
-    local t = c and c.title or ""
-    if t == "" then return "Chapter " .. (idx + 1) end
-    if t:lower():find("^chapter") then return t end
-    return "Chapter " .. (idx + 1) .. MID .. t
-end
-
-local function chapter_at(t)
-    local name
-    for i, c in ipairs(chapters) do
-        if c.time <= t + 0.01 then name = (c.title and c.title ~= "") and c.title or ("Chapter " .. i) else break end
-    end
-    return name
-end
-
-local function breadcrumb()
-    local p = get("path") or ""
-    if p == "" then return get("media-title") or "" end
-    if p:find("://") then return get("media-title") or p end
-    local dir, file = utils.split_path(p)
-    local parent = (dir or ""):gsub("[/\\]+$", ""):match("[^/\\]+$")
-    if parent and parent ~= "" then return parent .. CRUMB .. (file or "") end
-    return file or p
-end
-
----------------------------------------------------------------------------
--- icons
----------------------------------------------------------------------------
-local ICON = {}
-
-function ICON.play(cx, cy, k, c)
-    shape(polyp({ cx - 6 * k, cy - 11 * k, cx - 6 * k, cy + 11 * k, cx + 12 * k, cy }), c)
-end
-function ICON.pause(cx, cy, k, c)
-    shape(rectp(cx - 8 * k, cy - 10 * k, cx - 2.5 * k, cy + 10 * k), c)
-    shape(rectp(cx + 2.5 * k, cy - 10 * k, cx + 8 * k, cy + 10 * k), c)
-end
--- playlist skip: a single triangle (chapter skip keeps the triangle-with-bar icons)
-function ICON.plprev(cx, cy, k, c)
-    shape(polyp({ cx + 7 * k, cy - 9 * k, cx + 7 * k, cy + 9 * k, cx - 8 * k, cy }), c)
-end
-function ICON.plnext(cx, cy, k, c)
-    shape(polyp({ cx - 7 * k, cy - 9 * k, cx - 7 * k, cy + 9 * k, cx + 8 * k, cy }), c)
-end
-function ICON.prev(cx, cy, k, c)
-    shape(rectp(cx - 9 * k, cy - 8 * k, cx - 6.5 * k, cy + 8 * k), c)
-    shape(polyp({ cx + 9 * k, cy - 8.5 * k, cx + 9 * k, cy + 8.5 * k, cx - 5 * k, cy }), c)
-end
-function ICON.next(cx, cy, k, c)
-    shape(rectp(cx + 6.5 * k, cy - 8 * k, cx + 9 * k, cy + 8 * k), c)
-    shape(polyp({ cx - 9 * k, cy - 8.5 * k, cx - 9 * k, cy + 8.5 * k, cx + 5 * k, cy }), c)
-end
-local function skip_icon(cx, cy, k, c, sx)
-    local r = 10 * k
-    shape(arcp(cx, cy, r, 2 * k, -30, 270, sx), c)
-    shape(polyp({ cx, cy - r - 4 * k, cx + sx * 5.5 * k, cy - r, cx, cy - r + 4 * k }), c)
-    T(cx, cy + 1 * k, 5, 8 * k, tostring(opts.skip_seconds), c, 1, true)
-end
-function ICON.back(cx, cy, k, c) skip_icon(cx, cy, k, c, -1) end
-function ICON.fwd(cx, cy, k, c) skip_icon(cx, cy, k, c, 1) end
-function ICON.mute(cx, cy, k, c)
-    local vol = mp.get_property_number("volume") or 100
-    local muted = get("mute") == "yes"
-    shape(polyp({ cx - 10 * k, cy - 3.5 * k, cx - 6 * k, cy - 3.5 * k, cx - 0.5 * k, cy - 8 * k,
-                  cx - 0.5 * k, cy + 8 * k, cx - 6 * k, cy + 3.5 * k, cx - 10 * k, cy + 3.5 * k }), c)
-    if muted or vol <= 0 then
-        shape(linep(cx + 3 * k, cy - 4 * k, cx + 10 * k, cy + 4 * k, 2 * k), c)
-        shape(linep(cx + 10 * k, cy - 4 * k, cx + 3 * k, cy + 4 * k, 2 * k), c)
-    else
-        shape(arcp(cx + 0.5 * k, cy, 5 * k, 1.8 * k, -45, 45), c)
-        if vol > 40 then shape(arcp(cx + 0.5 * k, cy, 9.5 * k, 1.8 * k, -45, 45), c) end
-    end
-end
-function ICON.cc(cx, cy, k, c)
-    shape(ring(cx - 16 * k, cy - 11.5 * k, cx + 16 * k, cy + 11.5 * k, 5 * k, 2.1 * k), c)
-    T(cx, cy + 0.5 * k, 5, 12.5 * k, "CC", c, 1, true)
-end
-function ICON.audio(cx, cy, k, c)
-    shape(ring(cx - 11 * k, cy - 14 * k, cx + 11 * k, cy + 14 * k, 5 * k, 2.1 * k), c)
-    shape(rectp(cx - 1 * k, cy - 8.5 * k, cx + 1 * k, cy + 8.5 * k), c)
-    shape(rrect(cx - 5 * k, cy - 3 * k, cx + 5 * k, cy + 3 * k, 2 * k), c)
-end
-function ICON.speed(cx, cy, k, c)
-    shape(arcp(cx, cy + 4 * k, 9.5 * k, 2 * k, 180, 360), c)
-    shape(linep(cx, cy + 4 * k, cx + 5 * k, cy - 3 * k, 2 * k), c)
-    shape(rrect(cx - 2 * k, cy + 2 * k, cx + 2 * k, cy + 6 * k, 2 * k), c)
-end
--- sliders: subtitles, audio and speed all live in this one menu
-function ICON.tracks(cx, cy, k, c)
-    local rows = { { -6.5, -4 }, { 0, 4.5 }, { 6.5, -1 } }
-    for _, r in ipairs(rows) do
-        local y, kx = cy + r[1] * k, cx + r[2] * k
-        shape(rectp(cx - 10 * k, y - 0.9 * k, cx + 10 * k, y + 0.9 * k), c)
-        shape(rrect(kx - 3.2 * k, y - 3.2 * k, kx + 3.2 * k, y + 3.2 * k, 3.2 * k), c)
-    end
-end
-function ICON.loop(cx, cy, k, c)
-    T(cx, cy, 5, 28 * k, "\226\134\187", c, 1, true, opts.symbol_font)
-end
-function ICON.playlist(cx, cy, k, c)
-    shape(rectp(cx - 11 * k, cy - 7 * k, cx + 2 * k, cy - 5 * k), c)
-    shape(rectp(cx - 11 * k, cy - 1 * k, cx + 2 * k, cy + 1 * k), c)
-    shape(rectp(cx - 11 * k, cy + 5 * k, cx - 3 * k, cy + 7 * k), c)
-    shape(polyp({ cx + 4 * k, cy + 1 * k, cx + 4 * k, cy + 11 * k, cx + 12 * k, cy + 6 * k }), c)
-end
-function ICON.fullscreen(cx, cy, k, c)
-    local s, len, t = 10 * k, 7 * k, 2.3 * k
-    for _, sx in ipairs({ -1, 1 }) do
-        for _, sy in ipairs({ -1, 1 }) do
-            local x0 = sx < 0 and cx - s or cx + s
-            local y0 = sy < 0 and cy - s or cy + s
-            shape(rectp(math.min(x0, x0 - sx * len), math.min(y0, y0 - sy * t),
-                        math.max(x0, x0 - sx * len), math.max(y0, y0 - sy * t)), c)
-            shape(rectp(math.min(x0, x0 - sx * t), math.min(y0, y0 - sy * len),
-                        math.max(x0, x0 - sx * t), math.max(y0, y0 - sy * len)), c)
-        end
-    end
-end
-function ICON.pin(cx, cy, k, c)
-    shape(polyp({ cx - 4 * k, cy - 10 * k, cx + 4 * k, cy - 10 * k, cx + 3 * k, cy - 2 * k,
-                  cx + 6 * k, cy + 2 * k, cx - 6 * k, cy + 2 * k, cx - 3 * k, cy - 2 * k }), c)
-    shape(linep(cx, cy + 2 * k, cx, cy + 10 * k, 2 * k), c)
-end
-function ICON.min(cx, cy, k, c) shape(rectp(cx - 7 * k, cy - 1 * k, cx + 7 * k, cy + 1 * k), c) end
-function ICON.max(cx, cy, k, c) shape(ring(cx - 6.5 * k, cy - 6.5 * k, cx + 6.5 * k, cy + 6.5 * k, 2 * k, 1.8 * k), c) end
-function ICON.close(cx, cy, k, c)
-    shape(linep(cx - 6 * k, cy - 6 * k, cx + 6 * k, cy + 6 * k, 2 * k), c)
-    shape(linep(cx + 6 * k, cy - 6 * k, cx - 6 * k, cy + 6 * k, 2 * k), c)
-end
-function ICON.check(cx, cy, k, c)
-    shape(linep(cx - 6 * k, cy + 0.5 * k, cx - 2 * k, cy + 4.5 * k, 2.4 * k), c)
-    shape(linep(cx - 2 * k, cy + 4.5 * k, cx + 6 * k, cy - 4 * k, 2.4 * k), c)
-end
-function ICON.plus(cx, cy, k, c)
-    shape(rectp(cx - 6 * k, cy - 1 * k, cx + 6 * k, cy + 1 * k), c)
-    shape(rectp(cx - 1 * k, cy - 6 * k, cx + 1 * k, cy + 6 * k), c)
-end
-function ICON.minus(cx, cy, k, c) shape(rectp(cx - 6 * k, cy - 1 * k, cx + 6 * k, cy + 1 * k), c) end
-function ICON.chevron(cx, cy, k, c)
-    shape(polyp({ cx - 4 * k, cy - 9 * k, cx - 1.5 * k, cy - 11.5 * k, cx + 7 * k, cy,
-                  cx - 1.5 * k, cy + 11.5 * k, cx - 4 * k, cy + 9 * k, cx + 3 * k, cy }), c)
-end
-
--- generic icon button: hover disc, optional ring, icon, optional count badge, hit region
--- toggled-on look for round buttons: accent border and/or a dark / glass / dark-glass fill
-local function active_look()
-    local st = tostring(opts.active_style):lower():match("^%s*(%a+)") or "border"
-    return st == "border" or st == "both", st == "fill" or st == "both"
-end
-
-local function active_bg(cx, cy, r, k)
-    local border, fill = active_look()
-    if fill then
-        local f = tostring(opts.active_fill):lower():gsub("[%s_%-]", ""):match("^%a+") or "darkglass"
-        local c = opts.active_fill_color ~= "" and opts.active_fill_color or (f == "glass" and "FFFFFF" or "0E141C")
-        local o = opts.active_fill_opacity
-        if o < 0 then o = f == "glass" and 0.28 or (f == "dark" and 0.85 or 0.5) end
-        shape(rrect(cx - r, cy - r, cx + r, cy + r, r), c, o)
-    end
-    if border then shape(ring(cx - r, cy - r, cx + r, cy + r, r, 1.5 * k), opts.accent, 1) end
-end
-
-local function btn(name, cx, cy, k, o)
-    o = o or {}
-    local icon = o.icon or name
-    local r = 22 * k
-    if o.disabled then
-        ICON[icon](cx, cy, k, opts.disabled_color)
-        region(cx - r, cy - r, cx + r, cy + r, "panel")
-        return
-    end
-    if inside(cx - r, cy - r, cx + r, cy + r) then
-        shape(rrect(cx - r, cy - r, cx + r, cy + r, r), "FFFFFF", 0.16)
-    end
-    if o.ring or o.active then active_bg(cx, cy, r, k) end
-    ICON[icon](cx, cy, k, o.color or "FFFFFF")
-    if o.badge and o.badge > 0 then
-        local bw = math.max(15 * k, textw(tostring(o.badge), 10 * k, true) + 6 * k)
-        local bx, by = cx + r - 4 * k, cy - r + 10 * k
-        shape(rrect(bx - bw, by - 7.5 * k, bx, by + 7.5 * k, 7.5 * k), opts.accent, 1)
-        T(bx - bw / 2, by + 0.5 * k, 5, 10 * k, tostring(o.badge), "04121F", 1, true)
-    end
-    region(cx - r, cy - r, cx + r, cy + r, name)
-end
-
-local function chip(x, y, k, str, o)
-    o = o or {}
-    local fs = opts.pill_font_size * k
-    local h = opts.pill_height * k
-    local w = textw(str, fs, opts.pill_bold) + 2 * opts.pill_padding * k
-    local pc, po = skin(opts.pill_color, opts.pill_opacity)
-    if po > 0 then
-        shape(rrect(x, y - h / 2, x + w, y + h / 2, h / 2), pc, po)
-        if opts.panel_style_all then add_blur_rect(x, y - h / 2, x + w, y + h / 2, h / 2) end
-    end
-    if opts.pill_border_width > 0 then
-        shape(ring(x, y - h / 2, x + w, y + h / 2, h / 2, opts.pill_border_width * k),
-              opts.pill_border_color, opts.pill_border_opacity)
-    end
-    T(x + w / 2, y, 5, fs, str, opts.pill_text_color, opts.pill_text_opacity, opts.pill_bold, nil, true)
-    return w
-end
-
--- label of the subtitle track that is currently selected (nil when subtitles are off)
-local function selected_sub_label()
-    local sid = get("sid")
-    if not sid or sid == "no" or sid == "false" then return nil end
-    for _, t in ipairs(mp.get_property_native("track-list") or {}) do
-        if t.type == "sub" and t.selected then return "CC" .. MID .. track_name(t) end
-    end
-    return "CC"
-end
-
-local function fps_label()
-    if get("current-tracks/video/albumart") == "yes" then return nil end
-    local f = mp.get_property_number("container-fps") or mp.get_property_number("estimated-vf-fps")
-    if not f or f < 5 then return nil end
-    if math.abs(f - math.floor(f + 0.5)) < 0.02 then return string.format("%d fps", math.floor(f + 0.5)) end
-    return string.format("%.2f fps", f)
-end
-
-local function badges(x, y, k, o)
-    o = o or {}
-    local gap = opts.pill_gap * k
-    local bx = x
-    if opts.pill_show_resolution and info.res then bx = bx + chip(bx, y, k, info.res, o) + gap end
-    if opts.pill_show_fps and info.res then
-        local fl = fps_label()
-        if fl then bx = bx + chip(bx, y, k, fl, o) + gap end
-    end
-    if opts.pill_show_hdr and #info.hdr > 0 then bx = bx + chip(bx, y, k, table.concat(info.hdr, DOT), o) + gap end
-    if opts.pill_show_vcodec and info.vcodec then bx = bx + chip(bx, y, k, info.vcodec, o) + gap end
-    if opts.pill_show_audio and info.audio then bx = bx + chip(bx, y, k, info.audio, o) + gap end
-    if opts.pill_show_acodec and info.acodec then bx = bx + chip(bx, y, k, info.acodec, o) + gap end
-
-    -- currently selected playback options
-    local sub = opts.pill_show_subtitle and selected_sub_label()
-    local spd = mp.get_property_number("speed") or 1
-    local looping = get("loop-file") == "inf" or get("loop-file") == "yes"
-    if sub then bx = bx + chip(bx, y, k, sub, o) + gap end
-    if opts.pill_show_speed and math.abs(spd - 1) > 0.001 then
-        bx = bx + chip(bx, y, k, string.format("%g", spd) .. "\195\151", o) + gap
-    end
-    if opts.pill_show_loop and looping then bx = bx + chip(bx, y, k, "Loop", o) + gap end
-    return bx
-end
-
----------------------------------------------------------------------------
--- shared bars: gradient, top bar, seek bar, volume, clusters
----------------------------------------------------------------------------
-local function gradient(w, h, style)
-    local key = w .. "x" .. h .. style
-    if grad_cache[key] then return grad_cache[key] end
-    local g = {}
-    -- strips sit edge to edge on whole pixels: no overlap (double-alpha lines) and no
-    -- anti-aliased seams between them
-    local function strip(y0, y1, op)
-        if y1 <= y0 then return end
-        g[#g + 1] = string.format(
-            "{\\an7\\pos(0,0)\\p1\\bord0\\shad0\\1c&H000000&\\1a&H%s&}m 0 %d l %d %d l %d %d l 0 %d{\\p0}",
-            A(op), y0, w, y0, w, y1, y1)
-    end
-    local function band(ya, yb, n, alpha_at)
-        ya, yb = math.floor(ya + 0.5), math.floor(yb + 0.5)
-        local prev = ya
-        for i = 1, n do
-            local nxt = ya + math.floor((yb - ya) * i / n + 0.5)
-            strip(prev, nxt, alpha_at((i - 0.5) / n))
-            prev = nxt
-        end
-    end
-    local top, peak = h * 0.38, 0.82
-    if style == "pill" then top, peak = h * 0.62, 0.55 end
-    local n = clamp(math.floor((h - top) / 7), 24, 80)
-    band(top, h, n, function(t) return peak * t ^ 1.7 end)
-    local th = h * 0.2
-    band(0, th, clamp(math.floor(th / 7), 12, 40), function(t) return 0.55 * (1 - t) ^ 1.5 end)
-    grad_cache[key] = table.concat(g, "\n")
-    return grad_cache[key]
-end
-
-local function winctl(xr, cy, k)
-    if not opts.show_window_controls then return xr end
-    local items = { "pin", "min", "max", "close" }
-    local bw, pad = 40 * k, 3 * k
-    local W = #items * bw + 2 * pad
-    local x0 = xr - W
-    local wc, wo = skin(opts.winctl_color, opts.winctl_opacity)
-    if wo > 0 then
-        shape(rrect(x0, cy - bw / 2 - pad, xr, cy + bw / 2 + pad, (bw + 2 * pad) / 2), wc, wo)
-        if opts.panel_style_all then add_blur_rect(x0, cy - bw / 2 - pad, xr, cy + bw / 2 + pad, (bw + 2 * pad) / 2) end
-    end
-    for i, name in ipairs(items) do
-        local color = "FFFFFF"
-        if name == "pin" and get("ontop") == "yes" then color = opts.accent end
-        btn(name, x0 + pad + bw * (i - 0.5), cy, k * 0.9, { color = color })
-    end
-    return x0
-end
-
-local function clock_strings()
-    local now = os.time()
-    local es
-    local dur = mp.get_property_number("duration")
-    if dur and dur > 0 then
-        local pos = mp.get_property_number("time-pos") or 0
-        local spd = mp.get_property_number("speed") or 1
-        es = "Ends at " .. clock(now + (mp.get_property_number("playtime-remaining") or ((dur - pos) / spd)))
-    end
-    return clock(now), es
-end
-
--- small pin marker + click target that toggles the pinned clock; xr = right edge of the clock text
-local function clock_pin_button(xr, cy, k, cs, es)
-    local tw = math.max(textw(cs, 22 * k, true), es and textw(es, 14 * k) or 0)
-    ICON.pin(xr + 13 * k, cy, k * 0.5, S.clock_pinned and opts.accent or "9AA3AF")
-    region(xr - tw - 6 * k, cy - 26 * k, xr + 22 * k, cy + 28 * k, "clockpin")
-end
-
-local function clock_block(xr, cy, k)
-    if not opts.show_clock then return end
-    local now = os.time()
-    T(xr, cy - 9 * k, 6, 22 * k, clock(now), "FFFFFF", 1, true)
-    clock_pin_button(xr, cy, k, clock(now), select(2, clock_strings()))
-    local dur = mp.get_property_number("duration")
-    if dur and dur > 0 then
-        local pos = mp.get_property_number("time-pos") or 0
-        local spd = mp.get_property_number("speed") or 1
-        local remain = mp.get_property_number("playtime-remaining") or ((dur - pos) / spd)
-        T(xr, cy + 15 * k, 6, 14 * k, "Ends at " .. clock(now + remain), "FFFFFF", 0.88)
-    end
-end
-
-local function playlist_pos()
-    if not opts.show_playlist_pos then return nil end
-    local n = mp.get_property_number("playlist-count") or 0
-    local i = mp.get_property_number("playlist-pos-1")
-    if n < 2 or not i or i < 1 then return nil end
-    local wd = math.max(2, #tostring(n))
-    return string.format("[%0" .. wd .. "d/%0" .. wd .. "d]", i, n)
-end
-
-local function crumb_text()
-    local pp = playlist_pos()
-    return (pp and (pp .. "  ") or "") .. breadcrumb()
-end
-
-local function top_bar(ctx)
-    local k, w = ctx.k, ctx.w
-    local mx = w * 0.04
-    local cy = 40 * k
-    local xl = winctl(w - mx, cy, k)
-    clock_block(xl - 24 * k, cy, k)
-    local ct = fit(crumb_text(), 15 * k, w * 0.45)
-    ICON.pin(mx - 11 * k, cy, k * 0.5, S.title_pinned and opts.accent or "9AA3AF")
-    T(mx, cy, 4, 15 * k, ct, "FFFFFF", 0.88)
-    region(mx - 20 * k, cy - 16 * k, mx + textw(ct, 15 * k) + 8 * k, cy + 16 * k, "titlepin")
-end
-
--- seek bar split into chapter segments, with buffer, knob, hover tooltip (+ thumbfast)
-local function build_segments(dur)
-    local segs = {}
-    if #chapters >= 2 and #chapters <= 60 and dur and dur > 0 then
-        local starts = {}
-        for i, c in ipairs(chapters) do starts[i] = clamp(c.time, 0, dur) end
-        if starts[1] > 1 then table.insert(starts, 1, 0) end
-        for i = 1, #starts do
-            local t1 = starts[i + 1] or dur
-            if t1 > starts[i] then segs[#segs + 1] = { starts[i], t1 } end
-        end
-    end
-    if #segs == 0 then segs[1] = { 0, (dur and dur > 0) and dur or 1 } end
-    return segs
-end
-
-local function t2x(segx, t)
-    for _, sg in ipairs(segx) do
-        if t <= sg[4] then
-            return sg[1] + clamp((t - sg[3]) / (sg[4] - sg[3]), 0, 1) * (sg[2] - sg[1])
-        end
-    end
-    return segx[#segx][2]
-end
-
-local function x2t(segx, x, dur)
-    for i, sg in ipairs(segx) do
-        local lim = (segx[i + 1] and (sg[2] + segx[i + 1][1]) / 2) or math.huge
-        if x <= lim then
-            return sg[3] + clamp((x - sg[1]) / (sg[2] - sg[1]), 0, 1) * (sg[4] - sg[3])
-        end
-    end
-    return dur or 0
-end
-
-local function thumb_clear()
-    if S.thumb_t then
-        mp.commandv("script-message-to", "thumbfast", "clear")
-        S.thumb_t = nil
-    end
-end
-
--- ---- Android-style wavy seek bar --------------------------------------------------------
-local function hex_rgb(h)
-    h = tostring(h):gsub("[^%x]", "")
-    if #h < 6 then return 255, 255, 255 end
-    return tonumber(h:sub(1, 2), 16), tonumber(h:sub(3, 4), 16), tonumber(h:sub(5, 6), 16)
-end
-
-local wave_cache = { src = nil, list = {} }
-local function wave_color(u)
-    if wave_cache.src ~= opts.wave_colors then
-        wave_cache.src = opts.wave_colors
-        wave_cache.list = {}
-        for tok in tostring(opts.wave_colors):gmatch("[^,%s]+") do
-            wave_cache.list[#wave_cache.list + 1] = { hex_rgb(tok) }
-        end
-        if #wave_cache.list == 0 then wave_cache.list[1] = { hex_rgb(opts.accent) } end
-    end
-    local l = wave_cache.list
-    if #l == 1 then return string.format("%02X%02X%02X", l[1][1], l[1][2], l[1][3]) end
-    u = clamp(u, 0, 1) * (#l - 1)
-    local i = math.min(#l - 2, math.floor(u))
-    local f = u - i
-    local a, b = l[i + 1], l[i + 2]
-    return string.format("%02X%02X%02X",
-        math.floor(a[1] + (b[1] - a[1]) * f + 0.5), math.floor(a[2] + (b[2] - a[2]) * f + 0.5),
-        math.floor(a[3] + (b[3] - a[3]) * f + 0.5))
-end
-
--- draws the played part as a travelling sine wave with a colour gradient; returns knob colour
-local function draw_wave(x0, x1, hx, y, k)
-    local target = (S.paused and opts.wave_flat_when_paused) and 0 or 1
-    S.wave_amp = (S.wave_amp or target) + (target - (S.wave_amp or target)) * 0.18
-    if math.abs(S.wave_amp - target) < 0.01 then S.wave_amp = target end
-    local amp = opts.wave_amplitude * k * S.wave_amp
-    local lam = math.max(8, opts.wave_length) * k
-    local played = hx - x0
-    local th = opts.wave_thickness * k
-    if tostring(opts.wave_style):lower():match("^%s*(%a+)") ~= "line" then
-        -- layered translucent humps (like a music visualiser), drawn as filled polygons over a straight line
-        local cols = {}
-        for tok in tostring(opts.wave_colors):gmatch("[^,%s]+") do cols[#cols + 1] = tok end
-        if #cols == 0 then cols[1] = opts.accent end
-        local t = mp.get_time() * opts.wave_speed
-        local step = math.max(2, 4 * k)
-        local n = math.max(2, math.ceil(played / step))
-        local layers = {
-            { 1.00, 1.00, 2.6, 0.50 }, { 0.80, 1.35, -2.0, 0.62 }, { 0.62, 0.78, 3.3, 0.40 },
-        }
-        local grow = math.min(1, played / (90 * k))
-        for li, L in ipairs(layers) do
-            local col = cols[math.min(#cols, math.floor((li - 1) * (#cols - 1) / 2 + 1.5))]
-            local pts = {}
-            for i = 0, n do
-                local x = math.min(hx, x0 + i * step)
-                local u = clamp((x - x0) / math.max(1, played), 0, 1)
-                local center = L[4]
-                local env = math.exp(-((u - center) / 0.26) ^ 2) * math.sin(math.pi * u) ^ 0.5
-                local h = ((1 + math.sin((x - x0) / (lam * L[2]) * 2 * math.pi - t * L[3])) / 2) ^ 1.4
-                pts[#pts + 1] = x
-                pts[#pts + 1] = y - amp * L[1] * grow * env * h
-            end
-            for i = n, 0, -1 do
-                pts[#pts + 1] = math.min(hx, x0 + i * step)
-                pts[#pts + 1] = y
-            end
-            shape(polyp(pts), col, opts.wave_opacity)
-        end
-        local bl = opts.wave_baseline ~= "" and opts.wave_baseline or nil
-        shape(rrect(x0, y - th / 2, hx, y + th / 2, th / 2), bl or wave_color(0.5), 1)
-        return wave_color(1), y
-    end
-    local phase = mp.get_time() * opts.wave_speed * 2.6
-    local step = math.max(2, 4 * k)
-    local n = math.max(1, math.ceil(played / step))
-    local grow = math.min(1, played / (90 * k))       -- little played yet: keep it calm
-    local function yy(x)
-        local u = (x - x0) / math.max(1, played)
-        local env = math.sin(math.pi * clamp(u, 0, 1)) ^ 1.6        -- bump: flat at both ends, strongest mid-way
-        return y - amp * grow * env * math.sin((x - x0) / lam * 2 * math.pi - phase)
-    end
-    local px, py = x0, yy(x0)
-    for i = 1, n do
-        local x = math.min(hx, x0 + i * step)
-        local ny = yy(x)
-        shape(linep(px, py, x, ny, th), wave_color(((px + x) / 2 - x0) / math.max(1, x1 - x0) ), 1)
-        px, py = x, ny
-    end
-    -- round caps
-    shape(rrect(x0 - th / 2, yy(x0) - th / 2, x0 + th / 2, yy(x0) + th / 2, th / 2), wave_color(0), 1)
-    return wave_color((hx - x0) / math.max(1, x1 - x0)), y
-end
-
-local function draw_seek(x0, x1, y, k, thick, ctx)
-    local dur, pos = ctx.dur or 0, ctx.pos
-    local segs = build_segments(ctx.dur)
-    local gap, n = 3 * k, #segs
-    local total = (x1 - x0) - gap * (n - 1)
-    local D = dur > 0 and dur or 1
-    local segx, cx = {}, x0
-    for i, s in ipairs(segs) do
-        local w = math.max(2 * k, total * (s[2] - s[1]) / D)
-        segx[i] = { cx, cx + w, s[1], s[2] }
-        cx = cx + w + gap
-    end
-    S.segx = segx
-
-    local hov = inside(x0 - 8, y - 16 * k, x1 + 8, y + 16 * k) or S.drag == "seek"
-    local th = (hov and thick * 1.5 or thick)
-    local cache = mp.get_property_number("demuxer-cache-time")
-    local wave_hx = opts.seek_wave and t2x(segx, pos) or nil
-    for _, sg in ipairs(segx) do
-        local sw = sg[2] - sg[1]
-        if wave_hx then
-            -- wave mode: thin straight track only to the right of the knob
-            if sg[2] > wave_hx then
-                shape(rrect(math.max(sg[1], wave_hx), y - th * 0.3, sg[2], y + th * 0.3, th * 0.3), "FFFFFF", 0.35)
-            end
-        else
-            shape(rrect(sg[1], y - th / 2, sg[2], y + th / 2, th / 2), "FFFFFF", 0.28)
-        end
-        if cache and cache > sg[3] and not wave_hx then
-            local fr = math.min(1, (cache - sg[3]) / (sg[4] - sg[3]))
-            shape(rrect(sg[1], y - th / 2, sg[1] + math.max(th, sw * fr), y + th / 2, th / 2), "FFFFFF", 0.5)
-        end
-        if pos > sg[3] and not opts.seek_wave then
-            local fr = math.min(1, (pos - sg[3]) / (sg[4] - sg[3]))
-            shape(rrect(sg[1], y - th / 2, sg[1] + math.max(th, sw * fr), y + th / 2, th / 2), opts.accent, 1)
-        end
-    end
-    local hx = t2x(segx, pos)
-    local kr = (hov and 7.5 or 4.5) * k
-    if opts.seek_wave then
-        local kc = draw_wave(x0, x1, hx, y, k)
-        local ro = kr * 1.9
-        shape(rrect(hx - ro, y - ro, hx + ro, y + ro, ro), kc, 0.28)          -- glow
-        shape(rrect(hx - kr * 1.25, y - kr * 1.25, hx + kr * 1.25, y + kr * 1.25, kr * 1.25), "FFFFFF", 1)
-        shape(rrect(hx - kr * 0.85, y - kr * 0.85, hx + kr * 0.85, y + kr * 0.85, kr * 0.85), kc, 1)
-    else
-        shape(rrect(hx - kr, y - kr, hx + kr, y + kr, kr), "FFFFFF", 1)
-    end
-    region(x0 - 8, y - 16 * k, x1 + 8, y + 16 * k, "seek")
-
-    if hov and dur > 0 and S.hover then
-        local t = x2t(segx, clamp(S.mx, x0, x1), dur)
-        local label = fmt(t)
-        local chap = chapter_at(t)
-        local fs = opts.tip_font_size * k
-        local cw = textw(label, fs, true)
-        if chap then cw = math.max(cw, textw(chap, 13 * k, false)) end
-        local use_thumb = opts.thumbfast and thumb.available and not thumb.disabled and thumb.width > 0
-        cw = cw + 16 * k
-        if use_thumb then cw = math.max(cw, thumb.width + 16 * k) end
-        local ch = (opts.tip_height + (chap and 14 or 0)) * k
-        local tx = clamp(S.mx, x0 + cw / 2, x1 - cw / 2)
-        local below = not use_thumb and tostring(opts.tip_position):lower():match("^%s*(%a+)") == "below"
-        local top = below and (y + opts.tip_gap * k + th / 2) or (y - 24 * k - ch)
-        local th_h = use_thumb and (thumb.height + 10 * k) or 0
-        shape(rrect(tx - cw / 2, top - th_h, tx + cw / 2, top + ch, math.min(10 * k, ch / 2)), skin(opts.tip_color, opts.tip_opacity))
-        local ty = top + (opts.tip_height / 2) * k
-        T(tx, ty, 5, fs, label, opts.tip_text_color, 1, true, nil, not opts.tip_shadow)
-        if chap then T(tx, top + (opts.tip_height + 6) * k, 5, 12 * k, fit(chap, 12 * k, cw - 12 * k), opts.tip_text_color, 0.85, false, nil, not opts.tip_shadow) end
-        if use_thumb then
-            local px = tx - thumb.width / 2
-            local py = top - th_h + 8 * k
-            if S.thumb_t == nil or math.abs(S.thumb_t - t) > 0.4 then
-                mp.commandv("script-message-to", "thumbfast", "thumb",
-                    string.format("%.2f", t), string.format("%d", px), string.format("%d", py))
-                S.thumb_t = t
-            end
-        end
-    elseif S.thumb_t then
-        thumb_clear()
-    end
-end
-
-local function volume_ctl(cx, cy, k, sw, show_pct)
-    local vol = mp.get_property_number("volume") or 100
-    local vmax = mp.get_property_number("volume-max") or 100
-    local fr = clamp(vol / vmax, 0, 1)
-
-    if opts.volume_style ~= "horizontal" then
-        -- one speaker button; clicking it opens a vertical slider above it
-        btn("volbtn", cx, cy, k, { icon = "mute", active = S.volpop })
-        S.vol.vertical = true
-        if not S.volpop then return end
-        local W, H = 46 * k, 156 * k
-        local x0, x1 = cx - W / 2, cx + W / 2
-        local y1 = cy - 30 * k
-        local y0 = y1 - H
-        shape(rrect(x0, y0, x1, y1, 18 * k), panel_bg())
-        add_blur_rect(x0, y0, x1, y1, 18 * k)
-        region(x0, y0, x1, y1, "panel", true)
-        local muted = get("mute") == "yes"
-        T(cx, y0 + 17 * k, 5, 13 * k, muted and "Muted" or string.format("%d%%", math.floor(vol + 0.5)),
-          "FFFFFF", 0.9, true, nil, not opts.panel_text_shadow)
-        local ty0, ty1 = y0 + 36 * k, y1 - 50 * k
-        shape(rrect(cx - 2 * k, ty0, cx + 2 * k, ty1, 2 * k), "FFFFFF", 0.3)
-        local fh = (ty1 - ty0) * (muted and 0 or fr)
-        if fh > 0.5 then shape(rrect(cx - 2 * k, ty1 - math.max(fh, 4 * k), cx + 2 * k, ty1, 2 * k), "FFFFFF", 1) end
-        local ky = ty1 - (ty1 - ty0) * (muted and 0 or fr)
-        shape(rrect(cx - 7 * k, ky - 7 * k, cx + 7 * k, ky + 7 * k, 7 * k), "FFFFFF", 1)
-        S.vol.y0, S.vol.y1 = ty0, ty1
-        region(cx - 18 * k, ty0 - 8 * k, cx + 18 * k, ty1 + 8 * k, "vol", true)
-        -- mute toggle at the bottom of the popup
-        local my = y1 - 24 * k
-        local r = 18 * k
-        if inside(cx - r, my - r, cx + r, my + r) then shape(rrect(cx - r, my - r, cx + r, my + r, r), "FFFFFF", 0.16) end
-        ICON.mute(cx, my, k * 0.9, muted and opts.accent or "FFFFFF")
-        region(cx - r, my - r, cx + r, my + r, "mute", true)
-        return
-    end
-
-    S.vol.vertical = false
-    btn("mute", cx, cy, k)
-    if sw < 24 * k then return end
-    local sx0 = cx + 22 * k + 4 * k
-    shape(rrect(sx0, cy - 2 * k, sx0 + sw, cy + 2 * k, 2 * k), "FFFFFF", 0.3)
-    shape(rrect(sx0, cy - 2 * k, sx0 + math.max(4 * k, sw * fr), cy + 2 * k, 2 * k), "FFFFFF", 1)
-    local kx = sx0 + sw * fr
-    shape(rrect(kx - 6 * k, cy - 6 * k, kx + 6 * k, cy + 6 * k, 6 * k), "FFFFFF", 1)
-    region(sx0 - 6 * k, cy - 14 * k, sx0 + sw + 6 * k, cy + 14 * k, "vol")
-    S.vol.x0, S.vol.x1 = sx0, sx0 + sw
-    if show_pct then T(sx0 + sw + 10 * k, cy, 4, 13 * k, string.format("%d%%", math.floor(vol + 0.5)), "FFFFFF", 0.85) end
-end
-
-local function play_btn(cx, cy, k, D)
-    local r = D / 2
-    local hov = inside(cx - r, cy - r, cx + r, cy + r)
-    shape(rrect(cx - r, cy - r, cx + r, cy + r, r), "FFFFFF", hov and 1 or 0.96)
-    if S.paused then ICON.play(cx, cy, k, "111111") else ICON.pause(cx, cy, k, "111111") end
-    region(cx - r, cy - r, cx + r, cy + r, "play")
-end
-
-local function time_label(xr, cy, k, fs)
-    local dur = mp.get_property_number("duration") or 0
-    local pos = mp.get_property_number("time-pos") or 0
-    local first = S.remaining and (MINUS .. fmt(math.max(0, dur - pos))) or fmt(pos)
-    local total = " / " .. fmt(dur)
-    out[#out + 1] = string.format(
-        "{\\an6\\pos(%s,%s)\\fn%s\\fs%s\\b1\\bord0\\shad%s\\1c&H%s&\\1a&H%s&\\4c&H000000&\\4a&H70&}%s{\\b0\\1a&H%s&}%s",
-        f(xr), f(cy), opts.font, f(fs), f(math.max(1, fs / 14)), bgr("FFFFFF"), A(1),
-        esc(first), A(0.7), esc(total))
-    local wd = textw(first, fs, true) + textw(total, fs, false)
-    region(xr - wd - 4 * k, cy - 14 * k, xr + 2 * k, cy + 14 * k, "time")
-    return xr - wd
-end
-
--- right cluster: tracks & playback menu, loop, playlist, fullscreen. returns left edge
-local function tools_cluster(xr, cy, k)
-    local items = { "tracks", "loop", "playlist", "fullscreen" }
-    local step = 46 * k
-    local spd = mp.get_property_number("speed") or 1
-    local sid = get("sid")
-    local sub_on = sid and sid ~= "no" and sid ~= "false"
-    local looping = get("loop-file") == "inf" or get("loop-file") == "yes"
-    local hint = opts.highlight_active and opts.accent or "FFFFFF"
-    local border = active_look()
-    local on_icon = border and opts.accent or "FFFFFF"
-    local fullscreen = get("fullscreen") == "yes"
-    for i, name in ipairs(items) do
-        local cx = xr - 22 * k - (#items - i) * step
-        local o = {}
-        if name == "tracks" then
-            o.active = S.menu
-            o.color = S.menu and on_icon or ((sub_on or math.abs(spd - 1) > 0.001) and hint or "FFFFFF")
-        elseif name == "loop" then
-            o.active = looping
-            o.color = looping and on_icon or "FFFFFF"
-        elseif name == "playlist" then
-            o.active = S.drawer
-            o.color = S.drawer and on_icon or "FFFFFF"
-        elseif name == "fullscreen" then
-            o.active = fullscreen
-            o.color = fullscreen and on_icon or "FFFFFF"
-        end
-        btn(name, cx, cy, k, o)
-    end
-    return xr - #items * step
-end
-
----------------------------------------------------------------------------
--- menus: tracks & playback popover, chapters / playlist drawer
----------------------------------------------------------------------------
-local SPEEDS = { 0.5, 0.75, 1, 1.25, 1.5, 2 }
-
--- Panels (tracks menu + drawer) use two scales: `k` (geometry, shrunk by panel_scale) and
--- `fk` (fonts, never shrunk), so the panels can be made compact without shrinking the text.
-local function draw_menu(ctx, right, bottom)
-    local fk = ctx.k
-    local k = fk * opts.panel_scale
-    local function PT(x, y, an, fs, str, rgb, op, bold)
-        T(x, y, an, fs, str, rgb, op, bold, nil, not opts.panel_text_shadow)
-    end
-    local W, P = 420 * k, 18 * k
-    local x1 = right
-    local x0 = x1 - W
-    local audio, subs = {}, {}
-    for _, t in ipairs(mp.get_property_native("track-list") or {}) do
-        if t.type == "audio" then audio[#audio + 1] = t elseif t.type == "sub" then subs[#subs + 1] = t end
-    end
-    local rowh = opts.panel_row_height * k
-    local ph = opts.panel_pill_height * k
-    local sth = ph + 6 * k
-    local nrows = clamp(math.max(#audio, #subs + 1), 2, 6)
-    local H = P + 20 * k + nrows * rowh + 10 * k + 11 * k + 18 * k + ph + 10 * k
-              + 2 * sth + 6 * k + 26 * k + P
-    local y0 = math.max(8 * k, bottom - H)
-    local y1 = y0 + H
-
-    shape(rrect(x0, y0, x1, y1, 20 * k), panel_bg())
-    add_blur_rect(x0, y0, x1, y1, 20 * k)
-    region(x0, y0, x1, y1, "panel", true)
-
-    local colw = (W - 2 * P - 20 * k) / 2
-    local cax, cbx = x0 + P, x0 + P + colw + 20 * k
-    local y = y0 + P
-    PT(cax, y + 7 * k, 4, 12 * fk, "AUDIO" .. MID .. #audio, "B8B8B8", 1, true)
-    PT(cbx, y + 7 * k, 4, 12 * fk, "SUBTITLES" .. MID .. #subs, "B8B8B8", 1, true)
-    y = y + 20 * k
-
-    local function row(x, ry, name, sub, selected, rname)
-        local rh = rowh - 3 * k
-        local hov = inside(x, ry, x + colw, ry + rh)
-        if selected or hov then shape(rrect(x, ry, x + colw, ry + rh, opts.panel_round_rows and rh / 2 or 9 * k), "FFFFFF", selected and 0.13 or 0.08) end
-        if sub and sub ~= "" then
-            PT(x + 9 * k, ry + rh * 0.32, 4, 14 * fk, fit(name, 14 * fk, colw - 36 * k, true), "FFFFFF", 1, true)
-            PT(x + 9 * k, ry + rh * 0.72, 4, 12 * fk, fit(sub, 12 * fk, colw - 36 * k), "C4C4C4", 1)
-        else
-            PT(x + 9 * k, ry + rh / 2, 4, 14 * fk, name, "FFFFFF", 1, true)
-        end
-        if selected then ICON.check(x + colw - 15 * k, ry + rh / 2, k * 0.85, opts.accent) end
-        region(x, ry, x + colw, ry + rh, rname, true)
-    end
-
-    for i = 1, math.min(#audio, nrows) do
-        local t = audio[i]
-        row(cax, y + (i - 1) * rowh, track_name(t), track_detail(t), t.selected, "aud:" .. t.id)
-    end
-    local sid = get("sid")
-    local off = (sid == "no" or sid == "false" or sid == nil)
-    row(cbx, y, "Off", nil, off, "sub:0")
-    for i = 1, math.min(#subs, nrows - 1) do
-        local t = subs[i]
-        row(cbx, y + i * rowh, track_name(t), track_detail(t), t.selected, "sub:" .. t.id)
-    end
-    y = y + nrows * rowh + 10 * k
-
-    shape(rectp(x0 + P, y, x1 - P, y + 1 * k), "FFFFFF", 0.14)
-    y = y + 11 * k
-
-    PT(x0 + P, y + 6 * k, 4, 12 * fk, "SPEED", "B8B8B8", 1, true)
-    y = y + 18 * k
-    local cur = mp.get_property_number("speed") or 1
-    local cgap = 4 * k
-    local cw = (W - 2 * P - 5 * cgap) / 6
-    for i, sp in ipairs(SPEEDS) do
-        local cx0 = x0 + P + (i - 1) * (cw + cgap)
-        local sel = math.abs(cur - sp) < 0.001
-        if sel then
-            shape(rrect(cx0, y, cx0 + cw, y + ph, ph / 2), "FFFFFF", 1)
-        else
-            shape(ring(cx0, y, cx0 + cw, y + ph, ph / 2, 1.4 * k), "FFFFFF", inside(cx0, y, cx0 + cw, y + ph) and 0.7 or 0.3)
-        end
-        PT(cx0 + cw / 2, y + ph / 2, 5, 14 * fk, string.format("%g", sp) .. "\195\151", sel and "111111" or "FFFFFF", 1, true)
-        region(cx0, y, cx0 + cw, y + ph, "spd:" .. sp, true)
-    end
-    y = y + ph + 10 * k
-
-    local function stepper(label, prop, tag)
-        local val = mp.get_property_number(prop) or 0
-        local cy = y + sth / 2
-        PT(x0 + P, cy, 4, 14 * fk, label, "FFFFFF", 1, true)
-        local r = ph / 2
-        local pc = x1 - P - r
-        local vc = pc - 52 * k
-        local mc = vc - 52 * k
-        local function sbtn(cx, icon, name)
-            local hv = inside(cx - r, cy - r, cx + r, cy + r)
-            shape(ring(cx - r, cy - r, cx + r, cy + r, r, 1.4 * k), "FFFFFF", hv and 0.8 or 0.3)
-            ICON[icon](cx, cy, k * 0.7, "FFFFFF")
-            region(cx - r, cy - r, cx + r, cy + r, name, true)
-        end
-        sbtn(mc, "minus", "dly:" .. tag .. "-")
-        PT(vc, cy, 5, 14 * fk, string.format("%+d ms", math.floor(val * 1000 + 0.5)):gsub("^%+0 ms$", "0 ms"), "FFFFFF", 1)
-        sbtn(pc, "plus", "dly:" .. tag .. "+")
-        y = y + sth
-    end
-    stepper("Audio delay", "audio-delay", "a")
-    stepper("Subtitle delay", "sub-delay", "s")
-    y = y + 6 * k
-
-    local lx = x0 + P
-    local lw = textw("Load subtitle file" .. ELLIPSIS, 14 * fk, true) + 30 * k
-    ICON.plus(lx + 9 * k, y + 13 * k, k * 0.75, opts.accent)
-    PT(lx + 24 * k, y + 13 * k, 4, 14 * fk, "Load subtitle file" .. ELLIPSIS, opts.accent, 1, true)
-    region(lx, y, lx + lw, y + 26 * k, "loadsub", true)
-end
-
----------------------------------------------------------------------------
--- play history (recent files, saved to history_file)
----------------------------------------------------------------------------
-local H = { list = {}, path = nil, dirty = false, loaded = false }
-
-local function history_path()
-    if H.path == nil then
-        local ok, res = pcall(mp.command_native, { "expand-path", opts.history_file })
-        H.path = (ok and type(res) == "string" and res ~= "") and res or false
-    end
-    return H.path
-end
-
--- mpv's own watch history (save-watch-history=yes): JSON lines {time, path, title?}
-local function mpv_history_enabled()
-    local src = tostring(opts.history_source):lower():match("^%s*(%a+)") or "auto"
-    if src == "own" then return false end
-    local v = get("options/save-watch-history")
-    return v == "yes" or v == "true"
-end
-
-local function mpv_history_read()
-    local want = get("options/watch-history-path")
-    if not want or want == "" then want = "~~state/watch_history.jsonl" end
-    local ok, fp = pcall(mp.command_native, { "expand-path", want })
-    if not ok or type(fp) ~= "string" or fp == "" then return end
-    local fh = io.open(fp, "r")
-    if not fh then return end
-    local rows = {}
-    for line in fh:lines() do
-        if line:find("{", 1, true) then
-            local ok2, e = pcall(utils.parse_json, line)
-            if ok2 and type(e) == "table" and type(e.path) == "string" then rows[#rows + 1] = e end
-        end
-    end
-    fh:close()
-    local list, seen = {}, {}
-    for i = #rows, 1, -1 do                      -- newest first, one entry per file
-        local e = rows[i]
-        if not seen[e.path] then
-            seen[e.path] = true
-            local title = e.title
-            if not title or title == "" then
-                local _, file = utils.split_path(e.path)
-                title = (file or e.path):gsub("%.[^%.]+$", "")
-            end
-            list[#list + 1] = { path = e.path, title = title, t = tonumber(e.time) or 0, pos = 0, dur = 0 }
-            if #list >= math.max(1, opts.history_max) then break end
-        end
-    end
-    H.list = list
-end
-
-local function history_load()
-    if opts.history and mpv_history_enabled() then
-        if H.reload ~= false then H.reload = false; mpv_history_read() end
-        return
-    end
-    if H.loaded then return end
-    H.loaded = true
-    local fp = history_path()
-    if not fp then return end
-    local fh = io.open(fp, "r")
-    if not fh then return end
-    local txt = fh:read("*a")
-    fh:close()
-    local ok, data = pcall(utils.parse_json, txt)
-    if ok and type(data) == "table" then
-        for _, e in ipairs(data) do
-            if type(e) == "table" and type(e.path) == "string" then H.list[#H.list + 1] = e end
-        end
-    end
-end
-
-local function history_save()
-    if not H.dirty or mpv_history_enabled() then return end
-    local fp = history_path()
-    if not fp then return end
-    local ok, txt = pcall(utils.format_json, H.list)
-    if not ok or not txt then return end
-    local fh = io.open(fp, "w")
-    if not fh then return end
-    fh:write(txt)
-    fh:close()
-    H.dirty = false
-end
-
-local function history_touch()
-    if not opts.history then return end
-    if mpv_history_enabled() then H.reload = true; return end
-    history_load()
-    local path = mp.get_property("path")
-    if not path or path == "" then return end
-    local title = mp.get_property("media-title") or path
-    local pos = mp.get_property_number("time-pos")
-    local dur = mp.get_property_number("duration")
-    for i = #H.list, 1, -1 do
-        if H.list[i].path == path then table.remove(H.list, i) end
-    end
-    table.insert(H.list, 1, { path = path, title = title, pos = pos or 0, dur = dur or 0, t = os.time() })
-    while #H.list > math.max(1, opts.history_max) do table.remove(H.list) end
-    H.dirty = true
-end
-
--- remember where the current file is (called periodically and when it ends)
-local function history_pos()
-    if not opts.history or not H.loaded or not H.list[1] or mpv_history_enabled() then return end
-    local path = mp.get_property("path")
-    if path ~= H.list[1].path then return end
-    local pos = mp.get_property_number("time-pos")
-    local dur = mp.get_property_number("duration")
-    if pos then
-        H.list[1].pos = pos
-        if dur then H.list[1].dur = dur end
-        H.dirty = true
-    end
-end
-
-local function ago(t)
-    local d = os.time() - (t or 0)
-    if d < 90 then return "now" end
-    if d < 3600 then return math.floor(d / 60 + 0.5) .. "m" end
-    if d < 86400 then return math.floor(d / 3600 + 0.5) .. "h" end
-    return math.floor(d / 86400 + 0.5) .. "d"
-end
-
-local function history_play(idx)
-    local e = H.list[idx]
-    if not e then return end
-    local cmd = { name = "loadfile", url = e.path, flags = "replace" }
-    if opts.history_resume and (e.pos or 0) > 10 and (e.dur or 0) > 0 and e.pos < e.dur - 15 then
-        cmd.options = "start=" .. string.format("%.1f", e.pos)
-    end
-    mp.command_native(cmd)
-end
-
-local function draw_drawer(ctx)
-    local fk, w, h = ctx.k, ctx.w, ctx.h
-    local k = fk * opts.panel_scale
-    local function PT(x, y, an, fs, str, rgb, op, bold)
-        T(x, y, an, fs, str, rgb, op, bold, nil, not opts.panel_text_shadow)
-    end
-    local x0 = w * 0.04
-    local W = (opts.history and 360 or 310) * k
-    local y0 = h * 0.12
-    local Hd = h * 0.46 * opts.panel_scale
-    local P = 12 * k
-    local x1, y1 = x0 + W, y0 + Hd
-    shape(rrect(x0, y0, x1, y1, 20 * k), panel_bg())
-    add_blur_rect(x0, y0, x1, y1, 20 * k)
-    region(x0, y0, x1, y1, "panel", true)
-    S.drawer_rect = { x0, y0, x1, y1 }
-
-    -- tabs
-    local playlist = mp.get_property_native("playlist") or {}
-    local ph = opts.panel_pill_height * k
-    local tab_y, tab_h = y0 + P, ph
-    shape(rrect(x0 + P, tab_y, x1 - P, tab_y + tab_h + 6 * k, (tab_h + 6 * k) / 2), "FFFFFF", 0.08)
-    local tabs = { { "playlist", "Playlist" .. MID .. #playlist }, { "chapters", "Chapters" .. MID .. #chapters } }
-    if opts.history then tabs[3] = { "history", "History" } end
-    local tw = (W - 2 * P - 6 * k) / #tabs
-    for i, t in ipairs(tabs) do
-        local tx0 = x0 + P + 3 * k + (i - 1) * tw
-        local sel = S.drawer == t[1]
-        if sel then shape(rrect(tx0, tab_y + 3 * k, tx0 + tw, tab_y + 3 * k + tab_h, tab_h / 2), "FFFFFF", 1) end
-        PT(tx0 + tw / 2, tab_y + 3 * k + tab_h / 2, 5, 14 * fk, t[2], sel and "111111" or "DDDDDD", 1, true)
-        region(tx0, tab_y + 3 * k, tx0 + tw, tab_y + 3 * k + tab_h, "tab:" .. t[1], true)
-    end
-
-    local ly = tab_y + tab_h + 6 * k + 10 * k
-    local rowh = opts.panel_row_height * k
-    local rh = rowh - 3 * k
-    local visible = math.max(1, math.floor((y1 - P - ly) / rowh))
-    local items = {}
-    local cur_ch = mp.get_property_number("chapter") or -1
-    if S.drawer == "history" then
-        history_load()
-        local curp = mp.get_property("path")
-        for i, e in ipairs(H.list) do
-            items[i] = { name = e.title or e.path, right = (e.path == curp) and "\226\150\182" or ago(e.t),
-                         cur = e.path == curp, rname = "hi:" .. i }
-        end
-    elseif S.drawer == "chapters" then
-        for i, c in ipairs(chapters) do
-            local nm = (c.title and c.title ~= "") and c.title or ("Chapter " .. i)
-            items[i] = { name = nm, right = fmt(c.time), cur = (i - 1) == cur_ch, rname = "ch:" .. (i - 1) }
-        end
-    else
-        for i, e in ipairs(playlist) do
-            local nm = e.title
-            if not nm or nm == "" then
-                local _, file = utils.split_path(e.filename or "")
-                nm = (file or ""):gsub("%.[^%.]+$", "")
-            end
-            items[i] = { name = nm, right = e.current and "\226\150\182" or nil, cur = e.current, rname = "pl:" .. (i - 1) }
-        end
-    end
-    local maxscroll = math.max(0, #items - visible)
-    S.scroll = clamp(S.scroll, 0, maxscroll)
-    if #items == 0 then
-        PT(x0 + W / 2, ly + 24 * k, 5, 14 * fk, S.drawer == "history" and "No history yet" or (S.drawer == "chapters" and "No chapters in this file" or "Playlist is empty"), "C4C4C4", 1)
-    end
-    for i = 1, math.min(visible, #items - S.scroll) do
-        local it = items[i + S.scroll]
-        local ry = ly + (i - 1) * rowh
-        local rx0, rx1 = x0 + P, x1 - P
-        local hov = inside(rx0, ry, rx1, ry + rh)
-        local rrad = opts.panel_round_rows and rh / 2 or rh / 2.6
-        if it.cur then
-            shape(rrect(rx0, ry, rx1, ry + rh, rrad), "FFFFFF", 0.12)
-            shape(ring(rx0, ry, rx1, ry + rh, rrad, 1.4 * k), opts.accent, 1)
-        elseif hov then
-            shape(rrect(rx0, ry, rx1, ry + rh, rrad), "FFFFFF", 0.08)
-        end
-        local num = tostring(i + S.scroll)
-        local bd = rh - 10 * k
-        local bx0 = rx0 + (opts.panel_round_rows and 5 * k or 6 * k)
-        local bx1 = opts.panel_round_rows and (bx0 + bd) or (rx0 + 30 * k)
-        shape(rrect(bx0, ry + 5 * k, bx1, ry + rh - 5 * k, opts.panel_round_rows and bd / 2 or 5 * k), "FFFFFF", 0.1)
-        PT((bx0 + bx1) / 2, ry + rh / 2, 5, 13 * fk, num, "FFFFFF", 0.85, true)
-        local rw = it.right and (textw(it.right, 13 * fk) + 8 * k) or 0
-        PT(rx0 + 40 * k, ry + rh / 2, 4, 14 * fk,
-            fit(it.name, 14 * fk, (rx1 - rx0) - 48 * k - rw - 8 * k, it.cur), "FFFFFF", 1, it.cur)
-        if it.right then PT(rx1 - 9 * k, ry + rh / 2, 6, 13 * fk, it.right, "FFFFFF", it.cur and 1 or 0.7) end
-        region(rx0, ry, rx1, ry + rh, it.rname, true)
-    end
-    if maxscroll > 0 then
-        local th = (y1 - P - ly)
-        local bh = math.max(24 * k, th * visible / #items)
-        local by = ly + (th - bh) * (S.scroll / maxscroll)
-        shape(rrect(x1 - 6 * k, by, x1 - 4 * k, by + bh, 1 * k), "FFFFFF", 0.4)
-    end
-end
-
----------------------------------------------------------------------------
--- layouts
----------------------------------------------------------------------------
--- which skip buttons can do something right now
-local function skip_state()
-    local pc = mp.get_property_number("playlist-count") or 0
-    local pos = mp.get_property_number("playlist-pos-1") or 1
-    local loop = (get("loop-playlist") or "no") ~= "no"
-    local nch = #chapters
-    local ch = mp.get_property_number("chapter") or 0
+-- strips a leading file:// (and URL-decodes) so we can open the path
+-- with normal io.open on Windows
+local function file_uri_to_path(path)
+    if not path then return path end
+    if path:match("^file://") then
+        path = path:gsub("^file:///", "")
+        path = path:gsub("^file://", "")
+        path = path:gsub("%%20", " ")
+        path = path:gsub("(%%[0-9A-Fa-f][0-9A-Fa-f])", function(h)
+            return string.char(tonumber(h:sub(2), 16))
+        end)
+    end
+    return path
+end
+
+----------------------------------------------------------------------
+-- Fetch a URL via curl (blocking subprocess call - kept for reference /
+-- possible future synchronous uses, not used by the main load path)
+----------------------------------------------------------------------
+
+-- Shared curl args. --compressed asks for (and transparently decompresses)
+-- gzip/deflate/br - some ad-tech-backed podcast CDNs (e.g. AdsWizz-hosted
+-- Simplecast feeds) serve compressed responses by default; without this
+-- flag we'd try to regex-parse raw compressed bytes and silently fail
+-- with "no items found". The browser-like UA and Accept header also
+-- help avoid being blocked by hosts that filter out obvious bot/script
+-- user agents - virtually all podcast apps spoof a normal UA for exactly
+-- this reason.
+local function curl_args(url)
     return {
-        plprev = pc > 1 and (pos > 1 or loop),
-        plnext = pc > 1 and (pos < pc or loop),
-        chprev = nch > 0,
-        chnext = nch > 0 and ch < nch - 1,
+        "curl", "-s", "-L", "--compressed", "--max-time", CURL_TIMEOUT,
+        "-A", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "-H", "Accept: application/rss+xml, application/xml, text/xml, */*",
+        url,
     }
 end
 
-local function skip_btn(name, cx, cy, k, st)
-    local key = ({ prev = "plprev", next = "plnext", chprev = "chprev", chnext = "chnext" })[name]
-    local icon = ({ prev = "plprev", next = "plnext", chprev = "prev", chnext = "next" })[name]
-    btn(name, cx, cy, k, { disabled = not st[key], icon = icon })
+-- Logs a short, sanitized preview of a failed/empty response so the
+-- debug log actually explains WHY a feed failed (blocked, compressed,
+-- redirected to an HTML page, etc.) instead of just "no items found".
+local function log_response_preview(url, body)
+    if not body or body == "" then
+        msg.warn("[podcast] empty response body for " .. url)
+        return
+    end
+    local preview = body:sub(1, 150):gsub("[\r\n]+", " "):gsub("[^\32-\126]", "?")
+    msg.warn(string.format("[podcast] unexpected response for %s (%d bytes): %s",
+        url, #body, preview))
 end
 
-local function layout_streamer(ctx)
-    local w, h, k = ctx.w, ctx.h, ctx.k
-    local mx = w * 0.04
-    out[#out + 1] = gradient(w, h, "full")
-    top_bar(ctx)
-
-    local tfs = 34 * k
-    local pp = playlist_pos()
-    local full = (pp and (pp .. " ") or "") .. info.title
-    local tw = textw(full, tfs, true)
-    local maxw = w * 0.62
-    if tw > maxw then tfs = tfs * maxw / tw end
-    T(mx, h * 0.61, 4, tfs, full, "FFFFFF", 1, true)
-
-    local by = h * 0.68
-    local bx = badges(mx, by, k)
-    local cl = chapter_label()
-    if cl and opts.pill_show_chapter then
-        local cwid = textw(cl, opts.pill_font_size * k, opts.pill_bold) + 2 * opts.pill_padding * k
-        if bx + cwid < w - mx then chip(bx, by, k, cl) end
+local function http_get(url)
+    local res = mp.command_native({
+        name = "subprocess",
+        capture_stdout = true,
+        capture_stderr = true,
+        playback_only = false,
+        args = curl_args(url),
+    })
+    if not res then
+        msg.error("curl: failed to run subprocess")
+        return nil
     end
-
-    T(mx, h * 0.733, 4, 17 * k, info.meta, "C9C9C9", 1)
-    local cache = mp.get_property_number("demuxer-cache-duration")
-    if cache and cache > 0 then
-        T(w - mx, h * 0.733, 6, 14 * k, string.format("Cache %d s", math.floor(cache + 0.5)), "C4C4C4", 1)
+    if res.status ~= 0 then
+        msg.error("curl exited with status " .. tostring(res.status) ..
+                   " for " .. url .. " -- " .. tostring(res.stderr))
+        return nil
     end
-
-    local byy = h * 0.778
-    draw_seek(mx, w - mx, byy, k, 4 * k, ctx)
-
-    local cy = h * 0.87
-    local D = 52 * k
-    local cx = mx + D / 2
-    play_btn(cx, cy, k, D)
-    cx = cx + D / 2 + 8 * k + 22 * k
-    local st = skip_state()
-    skip_btn("prev", cx, cy, k, st); cx = cx + 46 * k
-    if opts.show_chapter_buttons then skip_btn("chprev", cx, cy, k, st); cx = cx + 46 * k end
-    btn("back", cx, cy, k); cx = cx + 46 * k
-    btn("fwd", cx, cy, k); cx = cx + 46 * k
-    if opts.show_chapter_buttons then skip_btn("chnext", cx, cy, k, st); cx = cx + 46 * k end
-    skip_btn("next", cx, cy, k, st); cx = cx + 56 * k
-    local xl = tools_cluster(w - mx, cy, k)
-    local tl = time_label(xl - 16 * k, cy, k, 18 * k)
-    volume_ctl(cx, cy, k, clamp(tl - 14 * k - (cx + 26 * k), 0, 96 * k))
-    return w - mx, byy - 26 * k
+    return res.stdout
 end
 
-local function layout_center(ctx)
-    local w, h, k = ctx.w, ctx.h, ctx.k
-    local mx = w * 0.04
-    out[#out + 1] = gradient(w, h, "full")
-    top_bar(ctx)
+----------------------------------------------------------------------
+-- Fetch a URL via curl WITHOUT blocking the player (async subprocess).
+-- IMPORTANT: this is what the feed-loading path actually uses. mpv's own
+-- docs warn that on_load hooks must not do slow work synchronously,
+-- because that freezes the ENTIRE player (not just the script) - which
+-- is exactly why the mpv window used to stay blank/unresponsive until a
+-- feed finished downloading. callback(xml_or_nil) is invoked once done.
+----------------------------------------------------------------------
 
-    local cy = h * 0.915
-    local sy = cy - 50 * k
-    local ty = sy - 36 * k
-    -- title row
-    local cl = chapter_label()
-    local ppc = playlist_pos()
-    local tfull = (ppc and (ppc .. " ") or "") .. info.title
-    -- measure the pills first: title and chapter label must stop before them
-    local tmp = #out
-    local bw = badges(0, -1000, k, { compact = true })
-    for i = #out, tmp + 1, -1 do out[i] = nil end
-    local pills_left = w - mx - (bw - opts.pill_gap * k)
-    local room = pills_left - mx - 18 * k
-    local tshown = tfull
-    if textw(tfull, 22 * k, true) > room then tshown = fit(tfull, 22 * k, room, true) end
-    T(mx, ty, 4, 22 * k, tshown, "FFFFFF", 1, true)
-    local tx2 = mx + textw(tshown, 22 * k, true) + 14 * k
-    if cl then
-        local avail = pills_left - tx2 - 14 * k
-        local lbl = MID:sub(2) .. cl
-        if textw(lbl, 15 * k) <= avail then
-            T(tx2, ty + 2 * k, 4, 15 * k, lbl, "E0E0E0", 1)
-        elseif avail > 90 * k then
-            T(tx2, ty + 2 * k, 4, 15 * k, fit(lbl, 15 * k, avail), "E0E0E0", 1)
-        end                                  -- too tight: leave the chapter label out
-    end
-    badges(pills_left, ty, k, { compact = true })
-
-    draw_seek(mx, w - mx, sy, k, 4 * k, ctx)
-
-    local D = 52 * k
-    local cx = mx + D / 2
-    play_btn(cx, cy, k, D)
-    cx = cx + D / 2 + 8 * k + 22 * k
-    local st = skip_state()
-    skip_btn("prev", cx, cy, k, st); cx = cx + 46 * k
-    if opts.show_chapter_buttons then skip_btn("chprev", cx, cy, k, st); cx = cx + 46 * k end
-    btn("back", cx, cy, k); cx = cx + 46 * k
-    btn("fwd", cx, cy, k); cx = cx + 46 * k
-    if opts.show_chapter_buttons then skip_btn("chnext", cx, cy, k, st); cx = cx + 46 * k end
-    skip_btn("next", cx, cy, k, st); cx = cx + 56 * k
-    local xl = tools_cluster(w - mx, cy, k)
-    local tl = time_label(xl - 16 * k, cy, k, 18 * k)
-    volume_ctl(cx, cy, k, clamp(tl - 14 * k - (cx + 26 * k), 0, 96 * k))
-    return w - mx, ty - 22 * k
-end
-
-local function layout_pill(ctx)
-    local w, h, k = ctx.w, ctx.h, ctx.k
-    local mx = w * 0.04
-    out[#out + 1] = gradient(w, h, "pill")
-
-    -- top-left: title chip + badges
-    local cl = chapter_label()
-    local sub = cl and (cl .. MID .. (mp.get_property_number("chapter") or 0) + 1 .. " of " .. #chapters) or info.meta
-    local ppp = playlist_pos()
-    if ppp then sub = ppp .. "  " .. sub end
-    local line1w = textw(info.title, 20 * k, true) + (info.year and textw("  (" .. info.year .. ")", 20 * k) or 0)
-    local cw = math.max(line1w, textw(sub, 14 * k)) + 36 * k
-    cw = math.min(cw, w * 0.5)
-    local ctop = 22 * k
-    shape(rrect(mx, ctop, mx + cw, ctop + 60 * k, 18 * k), "0C121A", 0.66)
-    T(mx + 18 * k, ctop + 20 * k, 4, 20 * k, fit(info.title, 20 * k, cw - 40 * k, true), "FFFFFF", 1, true)
-    if info.year then T(mx + 18 * k + textw(info.title, 20 * k, true) + 6 * k, ctop + 20 * k, 4, 20 * k, "(" .. info.year .. ")", "FFFFFF", 0.7) end
-    T(mx + 18 * k, ctop + 42 * k, 4, 14 * k, fit(sub, 14 * k, cw - 40 * k), "E0E0E0", 1)
-    badges(mx, ctop + 60 * k + 10 * k + 12 * k, k, { compact = true })
-
-    -- top-right: clock chip + window controls
-    local cy = ctop + 30 * k
-    local xl = winctl(w - mx, cy, k)
-    if opts.show_clock then
-        local now = os.time()
-        local dur = mp.get_property_number("duration")
-        local cs = clock(now)
-        local es
-        if dur and dur > 0 then
-            local pos = mp.get_property_number("time-pos") or 0
-            local spd = mp.get_property_number("speed") or 1
-            es = "Ends at " .. clock(now + (mp.get_property_number("playtime-remaining") or ((dur - pos) / spd)))
-        end
-        local cw2 = math.max(textw(cs, 16 * k, true), es and textw(es, 12 * k) or 0) + 32 * k
-        local cx1 = xl - 14 * k
-        shape(rrect(cx1 - cw2, cy - 22 * k, cx1, cy + 22 * k, 18 * k), "0C121A", 0.66)
-        T(cx1 - 16 * k, cy - 8 * k, 6, 16 * k, cs, "FFFFFF", 1, true)
-        ICON.pin(cx1 - cw2 + 14 * k, cy, k * 0.5, S.clock_pinned and opts.accent or "9AA3AF")
-        region(cx1 - cw2, cy - 22 * k, cx1, cy + 22 * k, "clockpin")
-        if es then T(cx1 - 16 * k, cy + 11 * k, 6, 12 * k, es, "E0E0E0", 1) end
-    end
-
-    -- pill (widens on narrow windows so the buttons never collide)
-    local pw = math.max(w * 0.78, math.min(w - 24 * k, (opts.show_chapter_buttons and 700 or 600) * k))
-    local px0 = (w - pw) / 2
-    local px1 = px0 + pw
-    local ph = 116 * k
-    local py1 = h - h * 0.05
-    local py0 = py1 - ph
-    shape(rrect(px0, py0, px1, py1, 30 * k), "0E141C", 0.8)
-
-    local dur = ctx.dur or 0
-    local r1 = py0 + 32 * k
-    local first = S.remaining and (MINUS .. fmt(math.max(0, dur - ctx.pos))) or fmt(ctx.pos)
-    local rest = S.remaining and fmt(ctx.pos) or (MINUS .. fmt(math.max(0, dur - ctx.pos)))
-    T(px0 + 24 * k, r1, 4, 14 * k, first, "FFFFFF", 1, true)
-    T(px1 - 24 * k, r1, 6, 14 * k, rest, "FFFFFF", 0.85, true)
-    region(px0 + 20 * k, r1 - 14 * k, px0 + 84 * k, r1 + 14 * k, "time")
-    draw_seek(px0 + 24 * k + 66 * k, px1 - 24 * k - 70 * k, r1, k, 4 * k, ctx)
-
-    local r2 = py0 + 84 * k
-    local vcx = px0 + 24 * k + 22 * k                  -- mute button centre
-    local tools_left = px1 - 24 * k - 4 * 46 * k       -- left edge of the tools cluster
-    local group = (opts.show_chapter_buttons and 340 or 248) * k                              -- prev..next block (5 buttons)
-    local free = (tools_left - 8 * k) - (vcx + 22 * k + 8 * k) - group
-    local sw = 0
-    if opts.volume_style == "horizontal" and free > 70 * k then sw = math.min(88 * k, free - 14 * k) end
-    volume_ctl(vcx, r2, k, sw)
-    local cstart = vcx + 22 * k + 8 * k + (sw > 0 and (4 * k + sw + 10 * k) or 0)
-    local mid = (cstart + tools_left - 8 * k) / 2
-    local st = skip_state()
-    local o1 = opts.show_chapter_buttons and 148 or 102
-    skip_btn("prev", mid - o1 * k, r2, k, st)
-    if opts.show_chapter_buttons then skip_btn("chprev", mid - 102 * k, r2, k, st) end
-    btn("back", mid - 56 * k, r2, k)
-    play_btn(mid, r2, k, 52 * k)
-    btn("fwd", mid + 56 * k, r2, k)
-    if opts.show_chapter_buttons then skip_btn("chnext", mid + 102 * k, r2, k, st) end
-    skip_btn("next", mid + o1 * k, r2, k, st)
-    tools_cluster(px1 - 24 * k, r2, k)
-    return px1, py0 - 12 * k
-end
-
----------------------------------------------------------------------------
--- render
----------------------------------------------------------------------------
----------------------------------------------------------------------------
--- experimental panel blur (GLSL user shader on the OUTPUT stage, regenerated when panels change)
----------------------------------------------------------------------------
-local B = { sig = "", path = nil, gen = 0, last = 0, checked = false, ok = true }
-
-local SHADER_HEAD = [==[
-//!HOOK OUTPUT
-//!BIND HOOKED
-//!DESC snad-osc panel blur
-#define RADIUS %.1f
-#define TAPS %d
-
-float snad_cov(vec2 p, vec4 r, float rad) {
-    vec2 c = (r.xy + r.zw) * 0.5;
-    vec2 h = (r.zw - r.xy) * 0.5;
-    vec2 q = abs(p - c) - h + vec2(rad);
-    float d = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - rad;
-    return clamp(0.5 - d, 0.0, 1.0);
-}
-
-vec4 hook() {
-    vec2 p = HOOKED_pos * HOOKED_size;
-    vec4 base = HOOKED_tex(HOOKED_pos);
-    float m = 0.0;
-]==]
-local SHADER_TAIL = [==[
-    if (m <= 0.0) return base;
-    float sigma = RADIUS * 0.5;
-    vec4 acc = base;
-    float wsum = 1.0;
-    for (int i = 1; i <= TAPS; i++) {
-        float fi = float(i);
-        float r = sqrt(fi / float(TAPS)) * RADIUS;
-        float a = fi * 2.39996323;
-        vec2 o = vec2(cos(a), sin(a)) * r;
-        float w = exp(-(r * r) / (2.0 * sigma * sigma));
-        acc += HOOKED_tex(HOOKED_pos + o * HOOKED_pt) * w;
-        wsum += w;
-    }
-    return mix(base, acc / wsum, m);
-}
-]==]
-
-local function blur_shader_text(rects, ml, mt)
-    local t = { string.format(SHADER_HEAD, clamp(opts.panel_blur_radius, 1, 60),
-                              math.floor(clamp(opts.panel_blur_taps, 8, 96))) }
-    for _, r in ipairs(rects) do
-        t[#t + 1] = string.format("    m = max(m, snad_cov(p, vec4(%.1f, %.1f, %.1f, %.1f), %.1f));\n",
-            r[1] - ml, r[2] - mt, r[3] - ml, r[4] - mt, r[5])
-    end
-    t[#t + 1] = SHADER_TAIL
-    return table.concat(t)
-end
-
-local function blur_remove()
-    if B.path then
-        mp.commandv("change-list", "glsl-shaders", "remove", B.path)
-        os.remove(B.path)
-        B.path = nil
-    end
-end
-
--- rects: list of {x0, y0, x1, y1, radius} in OSD pixels. force = skip the 0.35 s rate limit.
-local function blur_apply(rects, force)
-    if not opts.panel_blur or not B.ok then return end
-    if not B.checked then
-        B.checked = true
-        local vo = get("current-vo") or ""
-        if vo ~= "" and not vo:find("gpu") then
-            mp.msg.warn("snad-osc: panel_blur needs vo=gpu or gpu-next (current: " .. vo .. ") - disabled")
-            B.ok = false
+local function http_get_async(url, callback)
+    mp.command_native_async({
+        name = "subprocess",
+        capture_stdout = true,
+        capture_stderr = true,
+        playback_only = false,
+        args = curl_args(url),
+    }, function(success, res, err)
+        if not success or not res then
+            msg.error("curl async: failed to run subprocess for " .. url .. " -- " .. tostring(err))
+            callback(nil)
             return
         end
-    end
-    local ml, mt = S.ml or 0, S.mt or 0
-    local sig = ""
-    if #rects > 0 then
-        local t = {}
-        for _, r in ipairs(rects) do
-            t[#t + 1] = string.format("%d,%d,%d,%d,%d", math.floor(r[1] + 0.5), math.floor(r[2] + 0.5),
-                math.floor(r[3] + 0.5), math.floor(r[4] + 0.5), math.floor(r[5] + 0.5))
+        if res.status ~= 0 then
+            msg.error("curl exited with status " .. tostring(res.status) ..
+                       " for " .. url .. " -- " .. tostring(res.stderr))
+            callback(nil)
+            return
         end
-        sig = table.concat(t, ";") .. "|" .. math.floor(ml) .. "," .. math.floor(mt)
-    end
-    if sig == B.sig then return end
-    local now = mp.get_time()
-    if not force and sig ~= "" and now - B.last < 0.35 then return end   -- retried by the next render
-    B.last = now
-    blur_remove()
-    B.sig = sig
-    if sig == "" then return end
-    B.gen = B.gen + 1
-    local dir = os.getenv("TEMP") or os.getenv("TMP") or os.getenv("TMPDIR") or "/tmp"
-    local path = utils.join_path(dir, string.format("snad-osc-blur-%d-%d.glsl", os.time(), B.gen))
-    local fh = io.open(path, "w")
-    if not fh then
-        mp.msg.warn("snad-osc: cannot write " .. path .. " - panel_blur disabled")
-        B.ok = false
-        return
-    end
-    fh:write(blur_shader_text(rects, ml, mt))
-    fh:close()
-    B.path = path
-    mp.commandv("change-list", "glsl-shaders", "append", path)
+        callback(res.stdout)
+    end)
 end
 
----------------------------------------------------------------------------
--- right-click context menu (mpv's own menu-data, drawn in the panel theme)
----------------------------------------------------------------------------
-local function listof(x)
-    if type(x) ~= "table" then return {} end
-    if x.items and type(x.items) == "table" then return x.items end
-    return x
-end
+----------------------------------------------------------------------
+-- Very small RSS parser (pattern based, no external XML lib needed)
+----------------------------------------------------------------------
 
-local FALLBACK_MENU = {
-    { title = "Pause", cmd = "cycle pause" },
-    { title = "Stop", cmd = "stop" },
-    { type = "separator" },
-    { title = "Playlist", submenu = {
-        { title = "Previous", cmd = "playlist-prev" }, { title = "Next", cmd = "playlist-next" },
-        { title = "Shuffle", cmd = "playlist-shuffle" } } },
-    { title = "Audio", submenu = {
-        { title = "Next track", cmd = "cycle audio" }, { title = "Mute", cmd = "cycle mute" } } },
-    { title = "Subtitle", submenu = {
-        { title = "Next track", cmd = "cycle sub" }, { title = "Toggle visibility", cmd = "cycle sub-visibility" } } },
-    { title = "Window", submenu = {
-        { title = "Fullscreen", cmd = "cycle fullscreen" }, { title = "Stay on top", cmd = "cycle ontop" },
-        { title = "Minimize", cmd = "set window-minimized yes" }, { title = "Maximize", cmd = "cycle window-maximized" } } },
-    { title = "Screenshot", cmd = "screenshot" },
-    { type = "separator" },
-    { title = "Quit", cmd = "quit" },
-    { title = "Quit and save position", cmd = "quit-watch-later" },
-}
-
-local function has_state(it, name)
-    if it[name] == true then return true end
-    if type(it.state) == "table" then
-        for _, v in pairs(it.state) do if v == name then return true end end
+local function extract_tag(block, tag)
+    -- prefer CDATA content
+    local v = block:match("<" .. tag .. "[^>]*>%s*<!%[CDATA%[(.-)%]%]>%s*</" .. tag .. ">")
+    if not v then
+        v = block:match("<" .. tag .. "[^>]*>(.-)</" .. tag .. ">")
     end
-    return false
+    if v then
+        v = trim(decode_entities(v))
+    end
+    return v
 end
 
-local function key_map()
-    local m = {}
-    if not opts.ctx_shortcuts then return m end
-    local ok, binds = pcall(mp.get_property_native, "input-bindings")
-    if not ok or type(binds) ~= "table" then return m end
-    for _, b in ipairs(binds) do
-        if b.cmd and b.key and not tostring(b.cmd):find("snad") and not tostring(b.cmd):find("^ignore") then
-            local l = m[b.cmd]
-            if not l then l = {}; m[b.cmd] = l end
-            local dup = false
-            for _, k0 in ipairs(l) do if k0 == b.key then dup = true end end
-            if not dup and #l < opts.ctx_shortcut_keys then l[#l + 1] = b.key end
+local function extract_enclosure(block)
+    local url = block:match('<enclosure[^>]*url="(.-)"')
+    if not url then
+        url = block:match("<enclosure[^>]*url='(.-)'")
+    end
+    if not url then
+        -- some feeds only provide a <link> or <guid isPermaLink="false"> media link
+        url = block:match("<media:content[^>]*url=\"(.-)\"")
+    end
+    if url then
+        -- IMPORTANT: XML attribute values escape "&" as "&amp;". Feed hosts
+        -- that use signed/tokenized URLs (e.g. omny.fm/omnycontent.com) will
+        -- reject a request that still has literal "&amp;" in the query
+        -- string, which makes mpv fail to open the file and instantly
+        -- skip to the next playlist entry. Decode it back to "&".
+        url = decode_entities(trim(url))
+    end
+    return url
+end
+
+local function parse_feed(xml, feed_url)
+    if not xml or xml == "" then
+        return nil, "empty response"
+    end
+
+    local channel_block = xml:match("<channel[^>]*>(.-)<item")
+    local feed_title = "Podcast"
+    if channel_block then
+        feed_title = extract_tag(channel_block, "title") or feed_title
+    end
+
+    local items = {}
+    for item_block in xml:gmatch("<item[^>]*>(.-)</item>") do
+        local title = extract_tag(item_block, "title") or "(untitled episode)"
+        local url = extract_enclosure(item_block)
+        local pubdate = extract_tag(item_block, "pubDate") or ""
+        if url then
+            table.insert(items, {
+                title = title,
+                url = trim(url),
+                pubdate = pubdate,
+                feed = feed_title,
+            })
         end
     end
-    return m
+
+    if #items == 0 then
+        -- log a preview of what we actually got - makes it possible to
+        -- tell at a glance whether the host blocked us, redirected to an
+        -- HTML page, sent something unexpected, etc., instead of just
+        -- "no items found" with no further clue
+        log_response_preview(feed_url, xml)
+        return nil, "no playable <enclosure> items found in feed"
+    end
+
+    return feed_title, items
 end
 
-local function norm_menu(list, keys)
-    local res = {}
-    for _, it in ipairs(listof(list)) do
-        if type(it) == "table" and not has_state(it, "hidden") then
-            local e = {}
-            if it.type == "separator" then
-                e.sep = true
+----------------------------------------------------------------------
+-- Build episode list from a feeds file (.pcst / .snad containing URLs)
+----------------------------------------------------------------------
+
+-- splits a comma-separated keyword string into a trimmed, non-empty list
+local function split_keywords(s)
+    local out = {}
+    if not s then return out end
+    for token in (s .. ","):gmatch("(.-),") do
+        token = trim(token)
+        if token ~= "" then table.insert(out, token) end
+    end
+    return out
+end
+
+-- parses a yes/no-ish string into a boolean, falling back to `default`
+local function parse_bool(s, default)
+    s = trim(s):lower()
+    if s == "" then return default end
+    if s == "yes" or s == "true" or s == "1" or s == "on" then return true end
+    if s == "no" or s == "false" or s == "0" or s == "off" then return false end
+    return default
+end
+
+-- recognizes "filter:"/"include:"/"exclude:"/"start:"/"skip-intro:"/"ytdl:" directive lines
+local function parse_directive_line(line)
+    local val = line:match("^[Ff][Ii][Ll][Tt][Ee][Rr]%s*:%s*(.*)$")
+        or line:match("^[Ii][Nn][Cc][Ll][Uu][Dd][Ee]%s*:%s*(.*)$")
+    if val then return "include", val end
+    val = line:match("^[Ee][Xx][Cc][Ll][Uu][Dd][Ee]%s*:%s*(.*)$")
+    if val then return "exclude", val end
+    val = line:match("^[Ss][Tt][Aa][Rr][Tt]%s*:%s*(.*)$")
+        or line:match("^[Ss][Kk][Ii][Pp]%-?[Ii][Nn][Tt][Rr][Oo]%s*:%s*(.*)$")
+    if val then return "start", val end
+    val = line:match("^[Yy][Tt][Dd][Ll]%s*:%s*(.*)$")
+    if val then return "ytdl", val end
+    val = line:match("^[Rr][Ee][Mm][Oo][Vv][Ee]%-?[Dd][Uu][Pp][Ll][Ii][Cc][Aa][Tt][Ee][Ss]%s*:%s*(.*)$")
+        or line:match("^[Dd][Ee][Dd][Uu][Pp][Ee]%s*:%s*(.*)$")
+    if val then return "remove_duplicates", val end
+    return nil
+end
+
+-- true if `title` should be kept given include/exclude keyword lists
+-- (case-insensitive plain substring match; include is OR-matched)
+local function episode_matches(title, include_list, exclude_list)
+    local lt = (title or ""):lower()
+    if exclude_list and #exclude_list > 0 then
+        for _, kw in ipairs(exclude_list) do
+            if lt:find(kw:lower(), 1, true) then
+                return false
+            end
+        end
+    end
+    if include_list and #include_list > 0 then
+        for _, kw in ipairs(include_list) do
+            if lt:find(kw:lower(), 1, true) then
+                return true
+            end
+        end
+        return false -- had an include list but nothing matched
+    end
+    return true
+end
+
+-- Reads a feeds file and returns a list of
+--   { url = "...", include = {...}, exclude = {...} }
+-- honoring sticky filter:/exclude: directives and inline per-URL
+-- "| filter=..." / "| exclude=..." overrides. See the header comment
+-- at the top of this file for the full syntax and examples.
+local function read_feed_entries(path)
+    local f, err = io.open(path, "rb")
+    if not f then
+        msg.error("could not open feed list file: " .. tostring(err))
+        return {}
+    end
+    local content = f:read("*a")
+    f:close()
+
+    local entries = {}
+    local current_include, current_exclude = {}, {}
+    local current_start = 0
+    local current_ytdl = false -- default: skip yt-dlp, mpv opens episodes directly
+    local current_remove_duplicates = false -- default: keep duplicate titles
+
+    for raw_line in (content .. "\n"):gmatch("(.-)\r?\n") do
+        local line = trim(raw_line)
+        if line ~= "" and not line:match("^#") then
+            local dtype, dval = parse_directive_line(line)
+            if dtype == "include" then
+                current_include = split_keywords(dval)
+            elseif dtype == "exclude" then
+                current_exclude = split_keywords(dval)
+            elseif dtype == "start" then
+                current_start = parse_duration(dval) or 0
+            elseif dtype == "ytdl" then
+                current_ytdl = parse_bool(dval, false)
+            elseif dtype == "remove_duplicates" then
+                current_remove_duplicates = parse_bool(dval, false)
+            elseif line:match("^https?://") then
+                -- split on "|" for optional inline overrides
+                local segs = {}
+                for seg in (line .. "|"):gmatch("(.-)|") do
+                    table.insert(segs, trim(seg))
+                end
+                local url = segs[1]
+                local inc, exc, st, yd, rd = current_include, current_exclude, current_start,
+                    current_ytdl, current_remove_duplicates
+                for i = 2, #segs do
+                    local fv = segs[i]:match("^[Ff][Ii][Ll][Tt][Ee][Rr]%s*=%s*(.*)$")
+                        or segs[i]:match("^[Ii][Nn][Cc][Ll][Uu][Dd][Ee]%s*=%s*(.*)$")
+                    local ev = segs[i]:match("^[Ee][Xx][Cc][Ll][Uu][Dd][Ee]%s*=%s*(.*)$")
+                    local sv = segs[i]:match("^[Ss][Tt][Aa][Rr][Tt]%s*=%s*(.*)$")
+                        or segs[i]:match("^[Ss][Kk][Ii][Pp]%-?[Ii][Nn][Tt][Rr][Oo]%s*=%s*(.*)$")
+                    local yv = segs[i]:match("^[Yy][Tt][Dd][Ll]%s*=%s*(.*)$")
+                    local rv = segs[i]:match("^[Rr][Ee][Mm][Oo][Vv][Ee]%-?[Dd][Uu][Pp][Ll][Ii][Cc][Aa][Tt][Ee][Ss]%s*=%s*(.*)$")
+                        or segs[i]:match("^[Dd][Ee][Dd][Uu][Pp][Ee]%s*=%s*(.*)$")
+                    if fv then inc = split_keywords(fv) end
+                    if ev then exc = split_keywords(ev) end
+                    if sv then st = parse_duration(sv) or 0 end
+                    if yv then yd = parse_bool(yv, current_ytdl) end
+                    if rv then rd = parse_bool(rv, current_remove_duplicates) end
+                end
+                table.insert(entries, {
+                    url = url, include = inc, exclude = exc, start = st,
+                    ytdl = yd, remove_duplicates = rd,
+                })
+            end
+        end
+    end
+    return entries
+end
+
+----------------------------------------------------------------------
+-- Animated "Loading..." overlay, centered on screen, dots cycling
+-- while feeds are being fetched in the background.
+----------------------------------------------------------------------
+
+local function loading_text()
+    local ww, wh = mp.get_osd_size()
+    ww = ww or 1280
+    wh = wh or 720
+    local dots = string.rep(".", loading_dot_count)
+    return string.format(
+        "{\\pos(%d,%d)\\an5\\fs60\\bord3\\shad2\\c&HFFFFFF&\\3c&H000000&}Loading%s",
+        math.floor(ww / 2), math.floor(wh / 2), dots)
+end
+
+local loading_tick -- forward declaration (self-referencing timer callback)
+loading_tick = function()
+    loading_dot_count = (loading_dot_count + 1) % 4
+    if loading_overlay then
+        loading_overlay.data = loading_text()
+        loading_overlay:update()
+    end
+    loading_timer = mp.add_timeout(0.5, loading_tick)
+end
+
+local function stop_loading_animation()
+    if loading_timer then
+        loading_timer:stop()
+        loading_timer = nil
+    end
+    if loading_overlay then
+        loading_overlay:remove()
+    end
+end
+
+local function start_loading_animation()
+    stop_loading_animation() -- clear any previous run first
+    loading_dot_count = 0
+    if not loading_overlay then
+        loading_overlay = mp.create_osd_overlay("ass-events")
+    end
+    loading_overlay.data = loading_text()
+    loading_overlay:update()
+    loading_timer = mp.add_timeout(0.5, loading_tick)
+end
+
+-- Candidate folders to save the playlist in, in priority order: an
+-- explicit PLAYLIST_DIR override if set, otherwise the user's Windows
+-- Music folder, then %TEMP% as a last-resort fallback if neither of
+-- those can be written to (e.g. folder doesn't exist / no permission).
+local function playlist_dirs()
+    local dirs = {}
+    if PLAYLIST_DIR ~= "" then
+        table.insert(dirs, PLAYLIST_DIR)
+    else
+        local profile = os.getenv("USERPROFILE")
+        if profile and profile ~= "" then
+            table.insert(dirs, utils.join_path(profile, "Music"))
+        end
+    end
+    table.insert(dirs, os.getenv("TEMP") or os.getenv("TMP") or ".")
+    return dirs
+end
+
+-- Builds a filesystem-safe .m3u8 filename from the podcast/feed title
+-- (falling back to the feeds-file name, then "Podcast") so re-loading
+-- the same podcast overwrites the same file instead of piling up new
+-- ones named by timestamp.
+local function playlist_filename()
+    local name
+    if #feed_titles == 1 then
+        name = feed_titles[1]
+    elseif #feed_titles > 1 then
+        name = table.concat(feed_titles, " + ")
+    elseif last_loaded_path then
+        name = last_loaded_path:match("([^/\\]+)%.[^%.]+$")
+    end
+    name = name or "Podcast"
+    -- Characters illegal in Windows filenames, plus control chars, become "_"
+    name = name:gsub('[\\/:*?"<>|%c]', "_")
+    -- Non-ASCII dropped: Lua's io.open goes through the ANSI code page on
+    -- Windows, so a UTF-8 filename can silently fail to open there.
+    name = name:gsub("[^\32-\126]", "")
+    name = trim(name:gsub("%s+", " "))
+    name = name:gsub("[%. ]+$", "") -- Windows disallows trailing dots/spaces
+    if #name > 60 then
+        name = trim(name:sub(1, 60))
+    end
+    if name == "" then name = "Podcast" end
+    return name .. ".m3u8"
+end
+
+-- Writes the current `episodes` list out as an .m3u8, trying each
+-- candidate folder from playlist_dirs() in order until one succeeds.
+-- Returns the path written on success, or nil + the last error.
+local function write_playlist_file()
+    local filename = playlist_filename()
+    local last_err
+    for _, dir in ipairs(playlist_dirs()) do
+        local path = utils.join_path(dir, filename)
+        local out, ferr = io.open(path, "wb")
+        if out then
+            out:write("#EXTM3U\n")
+            for _, ep in ipairs(episodes) do
+                out:write("#EXTINF:-1," .. ep.title:gsub("\n", " ") .. "\n")
+                out:write(ep.url .. "\n")
+            end
+            out:close()
+            msg.info("Saved playlist: " .. path)
+            return path
+        end
+        last_err = ferr
+        msg.warn("could not write playlist to " .. path .. ": " .. tostring(ferr))
+    end
+    return nil, last_err
+end
+
+-- Fetches all feeds in `entries` one at a time (async, non-blocking), then
+-- builds the .m3u8 (in your Music folder by default - see PLAYLIST_DIR)
+-- and swaps it in over the loading placeholder. This never blocks the
+-- player - each curl call runs in the background while mpv's window
+-- stays fully responsive and shows our loading screen.
+local function load_feed_entries_async(entries)
+    episodes = {}
+    feed_titles = {}
+    url_to_start = {}
+    url_to_ytdl = {}
+    seen_titles = {}
+
+    local i = 0
+
+    local function fetch_next()
+        i = i + 1
+        local entry = entries[i]
+
+        if not entry then
+            -- all feeds processed - finalize
+            stop_loading_animation()
+
+            if #episodes == 0 then
+                mp.osd_message("Podcast: no episodes could be loaded.", 4)
+                return
+            end
+
+            -- Build the M3U8 playlist (named after the podcast, saved to
+            -- your Music folder by default - see PLAYLIST_DIR) and load
+            -- it in place of the loading placeholder that's currently
+            -- "playing".
+            local m3u_path, werr = write_playlist_file()
+            if not m3u_path then
+                msg.error("could not write playlist: " .. tostring(werr))
+                mp.osd_message("Podcast: could not write playlist file.", 4)
+                return
+            end
+
+            mp.commandv("loadfile", m3u_path, "replace")
+            mp.osd_message(
+                "Podcast: loaded " .. #episodes .. " episode(s) from " ..
+                table.concat(feed_titles, ", "), 4)
+            return
+        end
+
+        local filter_note = ""
+        if #entry.include > 0 then
+            filter_note = filter_note .. " [filter: " .. table.concat(entry.include, ", ") .. "]"
+        end
+        if #entry.exclude > 0 then
+            filter_note = filter_note .. " [exclude: " .. table.concat(entry.exclude, ", ") .. "]"
+        end
+
+        -- parses the fetched XML, applies filters/dedup, and adds
+        -- matching episodes to the running playlist
+        local function handle_xml(xml)
+            local title, items_or_err = parse_feed(xml, entry.url)
+            if not title then
+                msg.error("Feed failed (" .. entry.url .. "): " .. tostring(items_or_err))
+                mp.osd_message("Podcast: failed to load " .. entry.url, 3)
             else
-                e.title = tostring(it.title or ""):gsub("&&", "\1"):gsub("&", ""):gsub("\1", "&")
-                e.cmd = it.cmd
-                e.disabled = has_state(it, "disabled")
-                e.checked = has_state(it, "checked")
-                if it.submenu then e.sub = norm_menu(it.submenu, keys) end
-                if e.sub and #e.sub == 0 then e.sub = nil end
-                local sc = opts.ctx_shortcuts and opts.ctx_shortcut_keys > 0 and it.shortcut or nil
-                if type(sc) == "string" and opts.ctx_shortcut_keys > 0 then
-                    local parts, n = {}, 0
-                    for part in sc:gmatch("[^,]+") do
-                        n = n + 1
-                        if n > opts.ctx_shortcut_keys then break end
-                        parts[#parts + 1] = part
-                    end
-                    sc = table.concat(parts, ",")
-                end
-                if not sc and opts.ctx_shortcuts and e.cmd and keys[e.cmd] then sc = table.concat(keys[e.cmd], ",") end
-                e.shortcut = sc
-            end
-            res[#res + 1] = e
-        end
-    end
-    return res
-end
-
-local function ctx_close()
-    if S.ctx then
-        S.ctx = nil
-        mp.remove_key_binding("snad_ctx_esc")
-    end
-end
-
-local function ctx_open()
-    S.menu, S.volpop = nil, false
-    local md = mp.get_property_native("menu-data")
-    local keys = key_map()
-    local items = norm_menu(md, keys)
-    if #items == 0 then items = norm_menu(FALLBACK_MENU, keys) end
-    S.ctx = { stack = { { items = items, ax = S.mx, ay = S.my } } }
-    mp.add_forced_key_binding("ESC", "snad_ctx_esc", ctx_close)
-end
-
--- lays out and draws the open menu cascade; also stores geometry for hover hit-testing
-local function draw_ctx(ctx)
-    local c = S.ctx
-    if not c then return end
-    local k = ctx.k * opts.panel_scale
-    local fs = opts.ctx_font_size * ctx.k
-    local rowh, sepc = opts.ctx_row_height * k, 10 * k
-    local pad = 6 * k
-    -- menu text is narrower than the generic estimate (0.54 em/char); use a tighter one here
-    local CF = 0.47
-    local function mw(str, size) return ulen(str) * size * CF end
-    region(0, 0, ctx.w, ctx.h, "ctxbg", true)
-    for lvl, pnl in ipairs(c.stack) do
-        local wmax = opts.ctx_min_width * k
-        for _, it in ipairs(pnl.items) do
-            if not it.sep then
-                local w = 22 * k + mw(it.title, fs) + 30 * k + 14 * k
-                if it.shortcut and it.shortcut ~= "" then w = w + 26 * k + mw(it.shortcut, fs * 0.9) end
-                if w > wmax then wmax = w end
-            end
-        end
-        wmax = math.min(wmax, opts.ctx_max_width * k, ctx.w * 0.6)
-        local H = 2 * pad
-        for _, it in ipairs(pnl.items) do H = H + (it.sep and sepc or rowh) end
-        local x, y
-        if lvl == 1 then
-            x, y = pnl.ax, pnl.ay
-        else
-            local par = c.stack[lvl - 1]
-            local pg = par.g
-            x = pg.x1 - 4 * k
-            y = pg.rows[par.sel].y0 - pad
-            if x + wmax > ctx.w - 6 * k then x = pg.x0 - wmax + 4 * k end
-        end
-        x = clamp(x, 6 * k, math.max(6 * k, ctx.w - wmax - 6 * k))
-        y = clamp(y, 6 * k, math.max(6 * k, ctx.h - H - 6 * k))
-        local g = { x0 = x, y0 = y, x1 = x + wmax, y1 = y + H, rows = {} }
-        pnl.g = g
-        shape(rrect(g.x0, g.y0, g.x1, g.y1, 14 * k), panel_bg())
-        add_blur_rect(g.x0, g.y0, g.x1, g.y1, 14 * k)
-        region(g.x0, g.y0, g.x1, g.y1, "panel", true)
-        local ry = g.y0 + pad
-        for i, it in ipairs(pnl.items) do
-            if it.sep then
-                shape(rectp(g.x0 + 12 * k, ry + sepc / 2 - 0.5 * k, g.x1 - 12 * k, ry + sepc / 2 + 0.5 * k), "FFFFFF", 0.18)
-                g.rows[i] = { y0 = ry, y1 = ry + sepc }
-                ry = ry + sepc
-            else
-                local r = { y0 = ry, y1 = ry + rowh }
-                g.rows[i] = r
-                local cy = ry + rowh / 2
-                local dim = it.disabled and 0.35 or 1
-                if pnl.sel == i and not it.disabled then
-                    shape(rrect(g.x0 + 4 * k, ry + 1 * k, g.x1 - 4 * k, ry + rowh - 1 * k, 9 * k), "FFFFFF", 0.16)
-                end
-                if it.checked then ICON.check(g.x0 + 17 * k, cy, k * 0.75, opts.accent) end
-                local scw = (it.shortcut and it.shortcut ~= "") and (mw(it.shortcut, fs * 0.9) + 26 * k) or 0
-                local avail = (g.x1 - g.x0) - 32 * k - 14 * k - 14 * k - (it.sub and 18 * k or 0) - scw
-                T(g.x0 + 32 * k, cy, 4, fs, fit(it.title, fs, avail * 0.54 / CF), "FFFFFF", dim, false, nil, true)
-                local rx = g.x1 - 14 * k
-                if it.sub then
-                    shape(linep(rx - 8 * k, cy - 4.5 * k, rx - 3.5 * k, cy, 1.6 * k), "FFFFFF", 0.7 * dim)
-                    shape(linep(rx - 3.5 * k, cy, rx - 8 * k, cy + 4.5 * k, 1.6 * k), "FFFFFF", 0.7 * dim)
-                    rx = rx - 18 * k
-                end
-                if it.shortcut and it.shortcut ~= "" then
-                    T(rx, cy, 6, fs * 0.9, it.shortcut, "FFFFFF", 0.55 * dim, false, nil, true)
-                end
-                if not it.disabled then region(g.x0, ry, g.x1, ry + rowh, "ctx:" .. lvl .. ":" .. i, true) end
-                ry = ry + rowh
-            end
-        end
-    end
-end
-
--- hover: highlights the row under the mouse and opens / closes cascades
-local function ctx_hover()
-    local c = S.ctx
-    if not c or not S.hover then return end
-    for lvl = #c.stack, 1, -1 do
-        local pnl = c.stack[lvl]
-        local g = pnl.g
-        if g and S.mx >= g.x0 and S.mx <= g.x1 and S.my >= g.y0 and S.my <= g.y1 then
-            for i, r in ipairs(g.rows) do
-                if S.my >= r.y0 and S.my < r.y1 then
-                    local it = pnl.items[i]
-                    if it and not it.sep then
-                        if pnl.sel ~= i or #c.stack > lvl + ((it.sub and not it.disabled) and 1 or 0) then
-                            for j = #c.stack, lvl + 1, -1 do c.stack[j] = nil end
-                            pnl.sel = i
-                            if it.sub and not it.disabled then c.stack[lvl + 1] = { items = it.sub } end
+                table.insert(feed_titles, title)
+                local kept, total, deduped = 0, #items_or_err, 0
+                for _, item in ipairs(items_or_err) do
+                    if episode_matches(item.title, entry.include, entry.exclude) then
+                        local dup = false
+                        if entry.remove_duplicates then
+                            local key = trim(item.title):lower()
+                            if seen_titles[key] then
+                                dup = true
+                                deduped = deduped + 1
+                            else
+                                seen_titles[key] = true
+                            end
+                        end
+                        if not dup then
+                            item.start = entry.start or 0
+                            table.insert(episodes, item)
+                            url_to_start[item.url] = item.start
+                            url_to_ytdl[item.url] = entry.ytdl
+                            kept = kept + 1
                         end
                     end
+                end
+                msg.info(string.format("Feed '%s': kept %d of %d episode(s) after filtering%s",
+                    title, kept, total,
+                    deduped > 0 and (" [" .. deduped .. " duplicate title(s) removed]") or ""))
+            end
+            fetch_next() -- move on to the next feed, or finalize
+        end
+
+        msg.info("Fetching feed: " .. entry.url .. filter_note)
+        mp.osd_message(string.format("Loading podcast feed %d/%d...", i, #entries), 30)
+
+        http_get_async(entry.url, function(xml)
+            if xml then
+                handle_xml(xml)
+            else
+                msg.error("Feed failed (" .. entry.url .. "): fetch error")
+                mp.osd_message("Podcast: failed to load " .. entry.url, 3)
+                fetch_next()
+            end
+        end)
+    end
+
+    fetch_next()
+end
+
+-- Entry point called from the on_load hook. Reads the feed list file
+-- (fast, local disk only) and kicks off the async fetch chain above.
+-- Does NOT touch stream-open-filename itself - the caller is responsible
+-- for putting up a loading placeholder before calling this.
+local function load_feeds_from_file(path)
+    path = file_uri_to_path(path)
+    local entries = read_feed_entries(path)
+    if #entries == 0 then
+        stop_loading_animation()
+        mp.osd_message("Podcast: no feed URLs found in " .. path, 3)
+        return false
+    end
+    last_loaded_path = path
+    load_feed_entries_async(entries)
+    return true
+end
+
+----------------------------------------------------------------------
+-- Refresh: re-fetches the same feeds file and ADDS any genuinely new
+-- episodes to the end of the existing mpv playlist (via "append", never
+-- "replace"), so whatever is currently playing is never touched. Unlike
+-- the initial load, this does not reset episodes/url_to_start/
+-- seen_titles - it builds on top of that existing state so already-seen
+-- episodes are correctly recognized and skipped rather than duplicated.
+----------------------------------------------------------------------
+
+local menu_refreshing = false
+-- brief status text shown in the menu header after a refresh completes
+-- (e.g. "3 new episodes added"), cleared automatically after a few
+-- seconds - kept separate from mp.osd_message so it never visually
+-- overlaps the menu itself
+local menu_status = nil
+
+-- Forward declaration: refresh_feeds_async (below) needs to call
+-- menu_render() to update the menu header while a refresh is in
+-- progress, but menu_render's real definition lives further down this
+-- file, alongside the rest of the menu code. Without this forward
+-- declaration, that call would resolve to a nil GLOBAL instead of the
+-- local function defined later, and pressing R would error instead of
+-- refreshing.
+local menu_render
+
+local function refresh_feeds_async()
+    if menu_refreshing then
+        return
+    end
+    if not last_loaded_path then
+        mp.osd_message("Podcast: nothing loaded yet to refresh.", 3)
+        return
+    end
+
+    local ok_entries, entries = pcall(read_feed_entries, last_loaded_path)
+    if not ok_entries then
+        msg.error("Refresh: failed to read feeds file: " .. tostring(entries))
+        mp.osd_message("Podcast: refresh failed (could not read feeds file).", 3)
+        return
+    end
+    if #entries == 0 then
+        mp.osd_message("Podcast: no feed URLs found in " .. last_loaded_path, 3)
+        return
+    end
+
+    menu_refreshing = true
+    -- When the menu is open, show refresh status IN the menu's own
+    -- header (see menu_text()) instead of via mp.osd_message - both the
+    -- menu overlay and osd_message render near the same top-left corner
+    -- by default, and a lingering osd_message could visually collide
+    -- with the menu, making it look broken/unresponsive even though the
+    -- underlying key bindings are working fine. osd_message is only
+    -- used as a fallback when there's no menu open to show status in.
+    if menu_active then
+        menu_render()
+    else
+        mp.osd_message("Podcast: refreshing feed...", 30)
+    end
+
+    -- Safety net: if something goes wrong badly enough that the async
+    -- chain below never reaches finish() (a stuck subprocess, an error
+    -- escaping the pcall boundary some other way, etc.), this forces
+    -- menu_refreshing back to false after a while so "R" isn't
+    -- permanently stuck doing nothing.
+    local refresh_generation = (refresh_generation_counter or 0) + 1
+    refresh_generation_counter = refresh_generation
+    mp.add_timeout(25, function()
+        if menu_refreshing and refresh_generation_counter == refresh_generation then
+            msg.warn("Refresh: timed out without finishing, resetting state")
+            menu_refreshing = false
+        end
+    end)
+
+    local i = 0
+    local new_count = 0
+
+    local function finish()
+        menu_refreshing = false
+
+        -- Keep the saved playlist file in sync with any newly appended
+        -- episodes. Re-derives the same path write_playlist_file() used
+        -- on the initial load (same podcast title -> same filename), so
+        -- this overwrites that file rather than creating a second one.
+        if new_count > 0 then
+            local ok_w, werr = pcall(write_playlist_file)
+            if not ok_w then
+                msg.warn("Refresh: could not update playlist file: " .. tostring(werr))
+            end
+        end
+
+        local summary = new_count > 0
+            and (new_count .. " new episode(s) added")
+            or "no new episodes"
+        if menu_active then
+            menu_status = summary
+            menu_render()
+            mp.add_timeout(4, function()
+                menu_status = nil
+                if menu_active then menu_render() end
+            end)
+        else
+            mp.osd_message("Podcast: refreshed - " .. summary, new_count > 0 and 4 or 3)
+        end
+    end
+
+    local function fetch_next()
+        i = i + 1
+        local entry = entries[i]
+
+        if not entry then
+            finish()
+            return
+        end
+
+        -- Everything that touches shared state (episodes, feed_titles,
+        -- url_to_start, etc.) or parses external/untrusted data runs
+        -- inside pcall: a malformed feed or an unexpected edge case in
+        -- one entry must not be able to throw an uncaught error that
+        -- kills the rest of the refresh (or, worse, this script's other
+        -- key bindings like podcast_toggle) - it just gets logged and
+        -- refresh moves on to the next feed instead.
+        local function handle_xml(xml)
+            local ok, err = pcall(function()
+                local title, items_or_err = parse_feed(xml, entry.url)
+                if not title then
+                    msg.error("Refresh: feed failed (" .. entry.url .. "): " .. tostring(items_or_err))
                     return
                 end
+
+                local already_listed = false
+                for _, ft in ipairs(feed_titles) do
+                    if ft == title then already_listed = true break end
+                end
+                if not already_listed then
+                    table.insert(feed_titles, title)
+                end
+
+                for _, item in ipairs(items_or_err) do
+                    if episode_matches(item.title, entry.include, entry.exclude) then
+                        local dup = false
+                        if entry.remove_duplicates then
+                            local key = trim(item.title):lower()
+                            if seen_titles[key] then
+                                dup = true
+                            else
+                                seen_titles[key] = true
+                            end
+                        end
+                        -- url_to_start already having an entry for this
+                        -- URL means we've already added this exact
+                        -- episode in a previous load/refresh - skip it
+                        if not dup and url_to_start[item.url] == nil then
+                            item.start = entry.start or 0
+                            table.insert(episodes, item)
+                            url_to_start[item.url] = item.start
+                            url_to_ytdl[item.url] = entry.ytdl
+                            -- append only - never touches the currently
+                            -- playing item or anything already queued
+                            mp.commandv("loadfile", item.url, "append")
+                            new_count = new_count + 1
+                        end
+                    end
+                end
+            end)
+            if not ok then
+                msg.error("Refresh: error handling feed " .. entry.url .. ": " .. tostring(err))
             end
+            fetch_next()
+        end
+
+        http_get_async(entry.url, function(xml)
+            if xml then
+                handle_xml(xml)
+            else
+                msg.error("Refresh: fetch error for " .. entry.url)
+                fetch_next()
+            end
+        end)
+    end
+
+    fetch_next()
+end
+
+----------------------------------------------------------------------
+-- on_load hook: intercept .pcst / .snad files and redirect to our
+-- generated playlist instead of letting mpv try to "play" a text file.
+-- Also applies per-episode start offsets (start:/skip-intro: directive)
+-- right before mpv opens a matching episode URL.
+--
+-- IMPORTANT: mpv's own docs warn that on_load hooks must not do slow
+-- work synchronously, since that freezes the ENTIRE player (window
+-- included), not just the script. So this hook does the bare minimum:
+-- it swaps in an instant "loading" placeholder (a lavfi-generated dark
+-- screen) so the mpv window appears immediately, then kicks off the
+-- actual network fetch/parsing in the background via
+-- load_feeds_from_file -> load_feed_entries_async. Once that finishes,
+-- it replaces the placeholder with the real episode playlist.
+----------------------------------------------------------------------
+
+mp.add_hook("on_load", 50, function()
+    local path = mp.get_property("stream-open-filename", "")
+    if path == "" then return end
+
+    local lower = path:lower()
+    if lower:match("%.pcst$") or lower:match("%.snad$") then
+        -- Instant placeholder: a plain dark screen via mpv's lavfi
+        -- pseudo-demuxer, so the window shows up right away instead of
+        -- staying blank/absent while the feed downloads in the
+        -- background. 3600s is just a generous ceiling; it gets
+        -- replaced long before that by the real playlist.
+        mp.set_property("stream-open-filename", "av://lavfi:color=c=0x14141e:s=1280x720:d=3600")
+        start_loading_animation()
+
+        load_feeds_from_file(path) -- async - returns immediately
+        return
+    end
+
+    -- Apply the start seek offset for this specific URL, using the
+    -- "file-local-options/" property namespace. This is mpv's documented
+    -- mechanism for setting an option that applies to only the file about
+    -- to be opened, and is automatically reset once that file's playback
+    -- ends - unlike the plain "start" property (or "options/start"),
+    -- which is not reliably picked up here for the *upcoming* file and
+    -- would otherwise require manually tracking/clearing it ourselves.
+    local offset = url_to_start[path]
+    if offset ~= nil then
+        if offset > 0 then
+            mp.set_property("file-local-options/start", tostring(offset))
+        end
+
+        -- WORKAROUND: some external setups (audio-visualizer profiles via
+        -- auto_profiles.lua or an mpv.conf [audio-file] profile, etc.)
+        -- apply a "lavfi-complex" filter graph to audio-only files. If
+        -- that graph references a filter unavailable in the current
+        -- ffmpeg build, playback fails immediately with "AVFilterGraph:
+        -- Error creating filters" and the track gets skipped - this has
+        -- nothing to do with the podcast feed itself and would affect
+        -- any audio-only file. Force-clearing it for our own episode
+        -- URLs sidesteps that regardless of what's misconfigured
+        -- elsewhere, at the cost of not showing that visualizer for
+        -- podcast episodes specifically.
+        mp.set_property("file-local-options/lavfi-complex", "")
+
+        -- Cache the WHOLE episode (not just a small look-ahead buffer)
+        -- while it plays, using mpv's own built-in demuxer cache -
+        -- nothing external, no extra disk files to manage. Podcast
+        -- episodes are audio-only and typically well under 200MB even
+        -- for multi-hour shows, so holding an entire episode in mpv's
+        -- cache is cheap. Practical effect: once buffered, a flaky
+        -- connection won't interrupt playback, and seeking backward to
+        -- anything already played is instant instead of re-fetching -
+        -- demuxer-max-bytes controls how far AHEAD it buffers,
+        -- demuxer-max-back-bytes controls how much already-played
+        -- content it's allowed to keep BEHIND the current position, so
+        -- both need to be large for the whole file to stay cached
+        -- start-to-finish rather than trimming the beginning as you
+        -- play through it.
+        local EPISODE_CACHE_BYTES = "512MiB"
+        mp.set_property("file-local-options/cache", "yes")
+        mp.set_property("file-local-options/demuxer-max-bytes", EPISODE_CACHE_BYTES)
+        mp.set_property("file-local-options/demuxer-max-back-bytes", EPISODE_CACHE_BYTES)
+    end
+
+    -- Skip yt-dlp entirely for our own episode URLs by default (see the
+    -- ytdl: directive). Podcast enclosures are direct media files mpv
+    -- can open on its own, so this avoids the extra subprocess call and
+    -- its delay. Only applies to URLs that came from a loaded feed -
+    -- anything else (e.g. a YouTube link opened separately) is left
+    -- completely alone and still goes through yt-dlp normally.
+    local ytdl_allowed = url_to_ytdl[path]
+    if ytdl_allowed ~= nil then
+        mp.set_property("file-local-options/ytdl", ytdl_allowed and "yes" or "no")
+    end
+end)
+
+----------------------------------------------------------------------
+-- On-screen podcast menu
+----------------------------------------------------------------------
+
+local function format_pubdate(pd)
+    if not pd or pd == "" then return "" end
+    -- RSS pubDate looks like: "Fri, 08 Aug 2026 09:00:00 +0000"
+    local d, mo, y = pd:match("(%d%d?) (%a%a%a) (%d%d%d%d)")
+    if d and mo and y then
+        return string.format("%s %s %s", d, mo, y)
+    end
+    return ""
+end
+
+local function menu_text()
+    local ww, wh = mp.get_osd_size()
+    ww = ww or 1280
+    wh = wh or 720
+
+    local lines = {}
+    local refresh_tag = menu_refreshing and "  {\\c&H55AAFF&}[Refreshing...]{\\c&HFFFFFF&}" or ""
+    local status_tag = (not menu_refreshing and menu_status) and ("  {\\c&H70E070&}[" .. menu_status .. "]{\\c&HFFFFFF&}") or ""
+    table.insert(lines, "{\\an7\\fs28\\bord2\\shad1\\c&HFFFFFF&}Podcast Episodes{\\fs20}  (UP/DOWN move, ENTER play, R refresh, ESC close)" .. refresh_tag .. status_tag .. "\\N\\N")
+
+    if #episodes == 0 then
+        table.insert(lines, "{\\fs22\\c&HAAAAAA&}No episodes loaded.\\NDrag & drop a .pcst/.snad file containing a podcast feed URL onto the mpv window.")
+    else
+        local max_visible = 18
+        local first = 1
+        if menu_selected > max_visible then
+            first = menu_selected - max_visible + 1
+        end
+        local last = math.min(#episodes, first + max_visible - 1)
+
+        for i = first, last do
+            local ep = episodes[i]
+            local date = format_pubdate(ep.pubdate)
+            local label = ass_escape(ep.title)
+            local prefix = (i == menu_selected) and "{\\c&H00D7FF&}\\h\\h> " or "{\\c&HFFFFFF&}\\h\\h\\h"
+            local dateStr = date ~= "" and ("  {\\c&H888888&\\fs16}(" .. date .. "){\\fs20}") or ""
+            local startTag = (ep.start and ep.start > 0)
+                and ("  {\\c&H55AAFF&\\fs16}[starts @ " .. format_seconds(ep.start) .. "]{\\fs20}")
+                or ""
+            table.insert(lines, string.format("{\\fs20}%s%d. %s%s%s", prefix, i, label, dateStr, startTag))
+        end
+    end
+
+    return "{\\pos(30,30)}" .. table.concat(lines, "\\N")
+end
+
+-- Assigns the forward-declared local above, rather than "local function
+-- menu_render()" (which would create a NEW local, leaving the one
+-- captured by refresh_feeds_async's closure permanently nil).
+menu_render = function()
+    if not menu_overlay then
+        menu_overlay = mp.create_osd_overlay("ass-events")
+    end
+    menu_overlay.data = menu_text()
+    menu_overlay:update()
+end
+
+local function menu_close()
+    menu_active = false
+    if menu_overlay then
+        menu_overlay:remove()
+    end
+    if menu_keys_bound then
+        mp.remove_key_binding("podcast-menu-up")
+        mp.remove_key_binding("podcast-menu-down")
+        mp.remove_key_binding("podcast-menu-enter")
+        mp.remove_key_binding("podcast-menu-esc")
+        mp.remove_key_binding("podcast-menu-refresh")
+        menu_keys_bound = false
+    end
+end
+
+local function menu_play_selected()
+    local ep = episodes[menu_selected]
+    if not ep then return end
+    -- find matching entry in mpv's playlist by URL and jump to it
+    local pl = mp.get_property_native("playlist")
+    for i, entry in ipairs(pl) do
+        if entry.filename == ep.url then
+            mp.commandv("playlist-play-index", i - 1)
+            menu_close()
             return
         end
     end
+    -- fallback: just load it directly if not found in playlist
+    mp.commandv("loadfile", ep.url, "replace", "title=" .. ep.title)
+    menu_close()
 end
 
-local function ctx_activate(arg)
-    local c = S.ctx
-    local lvl, idx = arg:match("^(%d+):(%d+)$")
-    lvl, idx = tonumber(lvl), tonumber(idx)
-    if not c or not lvl or not c.stack[lvl] then return end
-    local it = c.stack[lvl].items[idx]
-    if not it or it.disabled or it.sep then return end
-    if it.sub then
-        for j = #c.stack, lvl + 1, -1 do c.stack[j] = nil end
-        c.stack[lvl].sel = idx
-        c.stack[lvl + 1] = { items = it.sub }
-    elseif it.cmd and it.cmd ~= "" then
-        local cmd = it.cmd
-        ctx_close()
-        mp.command(cmd)
-    end
-end
-
-local function render()
-    local d = mp.get_property_native("osd-dimensions")
-    if not d or not d.w or d.w <= 0 or d.h <= 0 then return end
-    local w, h = d.w, d.h
-    ov.res_x, ov.res_y = w, h
-    S.last_render = mp.get_time()
-    S.paused = mp.get_property_bool("pause") and true or false
-
-    local ctx = {
-        w = w, h = h, k = h / 562 * opts.scale,
-        dur = mp.get_property_number("duration"),
-        pos = mp.get_property_number("time-pos") or 0,
-    }
-    regions, out = {}, {}
-    S.drawer_rect = nil
-    panel_rects = {}
-    S.ml, S.mt = d.ml or 0, d.mt or 0
-
-    local mright, mbottom
-    if S.layout == "pill" then mright, mbottom = layout_pill(ctx)
-    elseif S.layout == "center" then mright, mbottom = layout_center(ctx)
-    else mright, mbottom = layout_streamer(ctx) end
-
-    if S.drawer then draw_drawer(ctx) end
-    if S.menu then draw_menu(ctx, mright, mbottom) end
-    if S.ctx then draw_ctx(ctx) end
-    if opts.panel_blur then blur_apply(panel_rects) end
-
-    ov.data = table.concat(out, "\n")
-    ov:update()
-end
-
----------------------------------------------------------------------------
--- visibility / input
----------------------------------------------------------------------------
--- keep subtitles clear of the controls: raise sub-pos while visible, restore when hidden
-local function lift_subs(on)
-    if opts.sub_lift <= 0 then return end
-    if on and S.sub_orig == nil then
-        local cur = mp.get_property_number("sub-pos")
-        if not cur then return end
-        S.sub_orig = cur
-        mp.set_property_number("sub-pos", math.max(0, cur - opts.sub_lift))
-    elseif not on and S.sub_orig ~= nil then
-        mp.set_property_number("sub-pos", S.sub_orig)
-        S.sub_orig = nil
-    end
-end
-
-local function draw_pinned_clock()
-    local d = mp.get_property_native("osd-dimensions")
-    if not d or not d.w or d.w <= 0 or d.h <= 0 then return end
-    ov.res_x, ov.res_y = d.w, d.h
-    local k = d.h / 562 * opts.scale
-    out = {}
-    local xr, cy = d.w - d.w * 0.04, 40 * k
-    if S.clock_pinned and opts.show_clock then
-        local cs, es = clock_strings()
-        T(xr, cy - 9 * k, 6, 22 * k, cs, "FFFFFF", 1, true)
-        if es then T(xr, cy + 15 * k, 6, 14 * k, es, "FFFFFF", 0.88) end
-    end
-    if S.title_pinned then
-        local mx = d.w * 0.04
-        T(mx, cy, 4, 15 * k, fit(crumb_text(), 15 * k, d.w * 0.45), "FFFFFF", 0.88)
-    end
-    ov.data = table.concat(out, "\n")
-    ov:update()
-    S.pin_sec = os.time()
-end
-
-local function clear_overlay()
-    S.visible = false
-    ctx_close()
-    lift_subs(false)
-    thumb_clear()
-    if opts.panel_blur then blur_apply({}, true) end
-    ov:remove()
-end
-
-local function hide()
-    clear_overlay()
-    if (S.clock_pinned and opts.show_clock) or S.title_pinned then draw_pinned_clock() end
-end
-
-local function show()
-    if S.idle then return end
-    S.visible = true
-    lift_subs(true)
-    S.last_move = mp.get_time()
-    if mp.get_time() - S.last_render > 0.03 then render() end
-end
-
-local function seek_to_mouse(exact)
-    local dur = mp.get_property_number("duration")
-    if not dur or #S.segx == 0 then return end
-    local t = x2t(S.segx, S.mx, dur)
-    mp.commandv("no-osd", "seek", string.format("%.3f", clamp(t, 0, dur)),
-        exact and "absolute+exact" or "absolute+keyframes")
-end
-
-local function set_volume_from_mouse()
-    local vmax = mp.get_property_number("volume-max") or 100
-    local fr
-    if S.vol.vertical then fr = clamp((S.vol.y1 - S.my) / (S.vol.y1 - S.vol.y0), 0, 1)
-    else fr = clamp((S.mx - S.vol.x0) / (S.vol.x1 - S.vol.x0), 0, 1) end
-    mp.set_property_number("volume", math.floor(fr * vmax + 0.5))
-    mp.set_property("mute", "no")
-end
-
-local function set_wheel(on)
-    if on then
-        mp.add_forced_key_binding("WHEEL_UP", "snad_wheel_up", function()
-            local r = S.drawer_rect
-            if r and S.hover and S.mx >= r[1] and S.mx <= r[3] and S.my >= r[2] and S.my <= r[4] then
-                S.scroll = S.scroll - 1; render()
-            else mp.commandv("no-osd", "add", "volume", "2") end
-        end)
-        mp.add_forced_key_binding("WHEEL_DOWN", "snad_wheel_down", function()
-            local r = S.drawer_rect
-            if r and S.hover and S.mx >= r[1] and S.mx <= r[3] and S.my >= r[2] and S.my <= r[4] then
-                S.scroll = S.scroll + 1; render()
-            else mp.commandv("no-osd", "add", "volume", "-2") end
-        end)
-    else
-        mp.remove_key_binding("snad_wheel_up")
-        mp.remove_key_binding("snad_wheel_down")
-    end
-end
-
-local function toggle_menu() S.menu = (not S.menu) and "tracks" or nil; S.volpop = false; show(); render() end
-local function toggle_drawer()
-    S.volpop = false
-    if S.drawer then S.drawer = nil; set_wheel(false)
-    else
-        S.drawer = (#chapters > 0) and "chapters" or "playlist"
-        S.scroll = 0; set_wheel(true)
-    end
-    show(); render()
-end
-
-local function prev_next(dir)
-    local pc = mp.get_property_number("playlist-count") or 0
-    if pc > 1 then mp.commandv(dir > 0 and "playlist-next" or "playlist-prev")
-    elseif not opts.show_chapter_buttons then mp.commandv("no-osd", "add", "chapter", tostring(dir)) end
-end
-
-local function load_subtitle()
-    if mp.get_property("platform") ~= "windows" then
-        mp.osd_message("Drop a subtitle file onto the window to load it", 3)
+local function menu_open()
+    if #episodes == 0 then
+        mp.osd_message("Podcast: no episodes loaded yet.\nDrag & drop a .pcst/.snad feed file onto mpv.", 3)
         return
     end
-    local ps = "Add-Type -AssemblyName System.Windows.Forms; " ..
-        "$f=New-Object System.Windows.Forms.OpenFileDialog; " ..
-        "$f.Filter='Subtitles|*.srt;*.ass;*.ssa;*.vtt;*.sub;*.sup|All files|*.*'; " ..
-        "if($f.ShowDialog() -eq 'OK'){[Console]::Out.Write($f.FileName)}"
-    mp.command_native_async({
-        name = "subprocess", args = { "powershell", "-NoProfile", "-STA", "-Command", ps },
-        capture_stdout = true, playback_only = false,
-    }, function(ok, res)
-        if ok and res and res.status == 0 and res.stdout and res.stdout ~= "" then
-            mp.commandv("sub-add", res.stdout, "select")
-            mp.osd_message("Subtitle loaded")
-        end
-    end)
+    menu_active = true
+    menu_selected = 1
+
+    mp.add_forced_key_binding("UP", "podcast-menu-up", function()
+        menu_selected = math.max(1, menu_selected - 1)
+        menu_render()
+    end, { repeatable = true })
+    mp.add_forced_key_binding("DOWN", "podcast-menu-down", function()
+        menu_selected = math.min(#episodes, menu_selected + 1)
+        menu_render()
+    end, { repeatable = true })
+    mp.add_forced_key_binding("ENTER", "podcast-menu-enter", menu_play_selected)
+    mp.add_forced_key_binding("ESC", "podcast-menu-esc", menu_close)
+    mp.add_forced_key_binding("r", "podcast-menu-refresh", refresh_feeds_async)
+    menu_keys_bound = true
+
+    menu_render()
 end
 
-local function bump(prop, step)
-    local cur = mp.get_property_number(prop) or 0
-    mp.set_property_number(prop, math.floor((cur + step) * 1000 + 0.5) / 1000)
-end
-
-local ACTIONS = {
-    play = function() mp.commandv("no-osd", "cycle", "pause") end,
-    chprev = function() mp.commandv("no-osd", "add", "chapter", "-1") end,
-    chnext = function() mp.commandv("no-osd", "add", "chapter", "1") end,
-    prev = function() prev_next(-1) end,
-    next = function() prev_next(1) end,
-    back = function() mp.commandv("no-osd", "seek", tostring(-opts.skip_seconds)) end,
-    fwd = function() mp.commandv("no-osd", "seek", tostring(opts.skip_seconds)) end,
-    mute = function() mp.commandv("no-osd", "cycle", "mute") end,
-    volbtn = function() S.volpop = not S.volpop; S.menu = nil end,
-    tracks = toggle_menu,
-    loop = function() mp.commandv("osd-auto", "cycle-values", "loop-file", "inf", "no") end,
-    playlist = toggle_drawer,
-    fullscreen = function() mp.commandv("cycle", "fullscreen") end,
-    time = function() S.remaining = not S.remaining end,
-    clockpin = function() S.clock_pinned = not S.clock_pinned end,
-    titlepin = function() S.title_pinned = not S.title_pinned end,
-    pin = function() mp.commandv("cycle", "ontop") end,
-    min = function() mp.set_property("window-minimized", "yes") end,
-    max = function() mp.commandv("cycle", "window-maximized") end,
-    close = function() mp.commandv("quit") end,
-    loadsub = load_subtitle,
-    ctxbg = function() ctx_close() end,
-}
-
-local function act(name)
-    if ACTIONS[name] then ACTIONS[name](); return end
-    local kind, arg = name:match("^(%a+):(.+)$")
-    if kind == "aud" then mp.set_property("aid", arg)
-    elseif kind == "sub" then mp.set_property("sid", arg == "0" and "no" or arg)
-    elseif kind == "spd" then mp.set_property_number("speed", tonumber(arg))
-    elseif kind == "dly" then
-        local prop = arg:sub(1, 1) == "a" and "audio-delay" or "sub-delay"
-        bump(prop, arg:sub(2, 2) == "+" and 0.05 or -0.05)
-    elseif kind == "ch" then mp.set_property_number("chapter", tonumber(arg))
-    elseif kind == "pl" then mp.commandv("playlist-play-index", arg)
-    elseif kind == "hi" then history_play(tonumber(arg))
-    elseif kind == "tab" then S.drawer = arg; S.scroll = 0; if arg == "history" then H.reload = true end
-    elseif kind == "ctx" then ctx_activate(arg)
-    end
-end
-
-mp.observe_property("mouse-pos", "native", function(_, p)
-    if not p then return end
-    local moved = (p.x ~= S.mx or p.y ~= S.my)
-    S.mx, S.my, S.hover = p.x, p.y, p.hover
-    if S.drag == "seek" then seek_to_mouse(false)
-    elseif S.drag == "vol" then set_volume_from_mouse() end
-    if moved and p.hover then show() end
-    if S.ctx and moved then ctx_hover(); render() end
-end)
-
-mp.add_forced_key_binding("MBTN_LEFT", "snad_click", function(e)
-    if e.event == "down" then
-        local r = S.visible and hit(S.mx, S.my) or nil
-        if r == "seek" then S.drag = "seek"; seek_to_mouse(false)
-        elseif r == "vol" then S.drag = "vol"; set_volume_from_mouse()
-        else S.pending = r or "_blank" end
-    elseif e.event == "up" then
-        if S.drag == "seek" then S.drag = nil; seek_to_mouse(true)
-        elseif S.drag == "vol" then S.drag = nil
-        elseif S.pending then
-            local r = S.visible and hit(S.mx, S.my) or "_blank"
-            if r == S.pending then
-                if r == "_blank" then
-                    if S.menu or S.drawer or S.volpop then
-                        S.menu = nil
-                        S.volpop = false
-                        if S.drawer then S.drawer = nil; set_wheel(false) end
-                    elseif opts.click_to_pause then
-                        mp.commandv("no-osd", "cycle", "pause")
-                    end
-                elseif r ~= "panel" then
-                    if r ~= "volbtn" and r ~= "mute" then S.volpop = false end
-                    act(r)
-                end
-            end
-            S.pending = nil
-        end
-    end
-    show(); render()
-end, { complex = true })
-
-if opts.context_menu then
-    mp.add_forced_key_binding("MBTN_RIGHT", "snad_rclick", function()
-        if S.ctx then ctx_close() else ctx_open() end
-        show(); render()
-    end)
-end
-
-mp.add_forced_key_binding("MBTN_LEFT_DBL", "snad_dblclick", function()
-    if S.visible and hit(S.mx, S.my) then return end
-    mp.commandv("cycle", "fullscreen")
-end)
-
-mp.add_key_binding(nil, "toggle-title", function() S.title_pinned = not S.title_pinned; if not S.visible then hide() end end)
-mp.add_key_binding(nil, "toggle-clock", function() S.clock_pinned = not S.clock_pinned; if not S.visible then hide() end end)
-mp.add_key_binding(nil, "toggle-menu", toggle_menu)
-mp.add_key_binding(nil, "toggle-drawer", toggle_drawer)
-
-mp.register_script_message("thumbfast-info", function(json)
-    local d = utils.parse_json(json)
-    if type(d) == "table" then
-        thumb.width, thumb.height = d.width or 0, d.height or 0
-        thumb.disabled, thumb.available = d.disabled and true or false, d.available and true or false
-    end
-end)
-
-mp.observe_property("pause", "bool", function() show() end)
-mp.observe_property("track-list", "native", function() refresh_info() end)
-mp.observe_property("video-params", "native", function() refresh_info() end)
-mp.observe_property("media-title", "string", function() refresh_info() end)
-mp.observe_property("chapter-list", "native", function() refresh_chapters() end)
-
-local VERSION = "v2.47"
-local layout_known = false
-for _, v in ipairs(LAYOUTS) do if v == opts.layout then layout_known = true end end
-mp.msg.info("snad-osc " .. VERSION .. "  layout=" .. S.layout ..
-    (layout_known and "" or ("  (unknown layout '" .. tostring(opts.layout) .. "' in snad_osc.conf)")))
-local announced = false
-
-mp.register_event("file-loaded", function()
-    mp.commandv("script-message", "osc-visibility", "never", "no-osd")
-    if not announced then
-        announced = true
-        if not layout_known then
-            mp.osd_message("snad-osc " .. VERSION .. ": unknown layout '" .. tostring(opts.layout) ..
-                "' (use streamer | pill | center | default) - using streamer", 6)
-        elseif opts.show_layout_hint then
-            mp.osd_message("snad-osc " .. VERSION .. "  layout: " .. S.layout, 2)
-        end
-    end
-    refresh_chapters()
-    refresh_info()
-    history_touch()
-    history_save()
-    show()
-end)
-mp.register_event("end-file", clear_overlay)
-mp.register_event("end-file", function() history_pos(); history_save() end)
-mp.register_event("shutdown", function() history_pos(); history_save() end)
-mp.add_periodic_timer(15, function() history_pos(); history_save() end)
-
--- nothing loaded: let mpv's stock OSC draw its logo; take over again once a file loads
-mp.observe_property("idle-active", "bool", function(_, idle)
-    if not opts.idle_logo then return end
-    S.idle = idle and true or false
-    if S.idle then
-        clear_overlay()
-        mp.commandv("script-message", "osc-visibility", "auto", "no-osd")
+local function podcast_toggle()
+    if menu_active then
+        menu_close()
     else
-        mp.commandv("script-message", "osc-visibility", "never", "no-osd")
+        menu_open()
     end
-end)
-
-mp.add_periodic_timer(0.1, function()
-    if not S.visible then
-        if ((S.clock_pinned and opts.show_clock) or S.title_pinned) and S.pin_sec ~= os.time() then draw_pinned_clock() end
-        return
-    end
-    local over = S.hover and hit(S.mx, S.my)
-    if not S.paused and not S.drag and not S.menu and not S.drawer and not S.volpop and not S.ctx and not over
-       and mp.get_time() - S.last_move > opts.hide_timeout then
-        hide()
-    else
-        render()
-    end
-end)
-
-if opts.seek_wave then
-    mp.add_periodic_timer(1 / clamp(opts.wave_fps, 5, 60), function()
-        if S.visible and not S.paused and mp.get_time() - S.last_render > 0.6 / clamp(opts.wave_fps, 5, 60) then
-            render()
-        end
-    end)
 end
 
-refresh_chapters()
-refresh_info()
+-- This matches the existing binding already present in this user's
+-- input.conf:   alt+p script-binding podcast_toggle
+mp.add_key_binding(nil, "podcast_toggle", podcast_toggle)
+
+msg.info("podcast.lua loaded - drag & drop a .pcst/.snad feed file, ALT+P to open the menu")
