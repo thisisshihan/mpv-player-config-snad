@@ -1,0 +1,71 @@
+name: Build GUI (Windows)
+
+on:
+  push:
+    branches: [ccr-31bda81b-x780bp]
+    tags: ['v*']
+    paths: ['gui/**', 'mpv.conf', 'input.conf', 'scripts/**', 'script-opts/**', 'shaders/**', 'fonts/**', '.github/workflows/build-gui.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7.*'
+          arch: win64_msvc2019_64
+          cache: true
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Fetch libmpv dev package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          url=$(curl -sH "Authorization: Bearer $GH_TOKEN" https://api.github.com/repos/zhongfly/mpv-winbuild/releases/latest \
+            | jq -r '.assets[] | select(.name | test("^mpv-dev-x86_64-[0-9]")) | .browser_download_url' | head -n1)
+          echo "libmpv: $url"
+          curl -L -o mpv-dev.7z "$url"
+          7z x mpv-dev.7z -ompv-dev
+          cd mpv-dev
+          ls -R | head -40
+          # The package ships no .def, so build the MSVC import library from the DLL's exports
+          dll=$(find . -name 'libmpv-2.dll' | head -n1)
+          if [ "$dll" != "./libmpv-2.dll" ]; then cp "$dll" ./libmpv-2.dll; fi
+          { echo "LIBRARY libmpv-2.dll"; echo "EXPORTS"; } > mpv.def
+          dumpbin //exports libmpv-2.dll | awk '$1 ~ /^[0-9]+$/ && $3 ~ /^[0-9A-Fa-f]{8}$/ && $4 ~ /^mpv_/ {print $4}' >> mpv.def
+          grep -c '^mpv_' mpv.def
+          lib //def:mpv.def //name:libmpv-2.dll //out:mpv.lib //machine:x64
+
+      - name: Configure and build
+        run: |
+          cmake -S gui -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DMPV_ROOT="$PWD/mpv-dev"
+          cmake --build build
+
+      - name: Package
+        run: |
+          cp mpv-dev/libmpv-2.dll build/
+          windeployqt --release --no-translations build/mpv-snad.exe
+          mkdir dist && cp -r build/* dist/ 2>/dev/null || true
+          rm -rf dist/CMakeFiles dist/*.ninja* dist/CMakeCache.txt dist/cmake_install.cmake
+          7z a mpv-snad-gui-windows-x64.zip ./dist/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mpv-snad-gui-windows-x64
+          path: mpv-snad-gui-windows-x64.zip
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: mpv-snad-gui-windows-x64.zip
