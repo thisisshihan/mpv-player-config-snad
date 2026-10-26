@@ -37,9 +37,14 @@ jobs:
           curl -L -o mpv-dev.7z "$url"
           7z x mpv-dev.7z -ompv-dev
           cd mpv-dev
-          # MSVC needs an import library; build it from the .def shipped in the package
-          lib /def:libmpv.def /name:libmpv-2.dll /out:mpv.lib /machine:x64 || lib /def:mpv.def /name:libmpv-2.dll /out:mpv.lib /machine:x64
           ls -R | head -40
+          # The package ships no .def, so build the MSVC import library from the DLL's exports
+          dll=$(find . -name 'libmpv-2.dll' | head -n1)
+          if [ "$dll" != "./libmpv-2.dll" ]; then cp "$dll" ./libmpv-2.dll; fi
+          { echo "LIBRARY libmpv-2.dll"; echo "EXPORTS"; } > mpv.def
+          dumpbin //exports libmpv-2.dll | awk '$1 ~ /^[0-9]+$/ && $3 ~ /^[0-9A-Fa-f]{8}$/ && $4 ~ /^mpv_/ {print $4}' >> mpv.def
+          grep -c '^mpv_' mpv.def
+          lib //def:mpv.def //name:libmpv-2.dll //out:mpv.lib //machine:x64
 
       - name: Configure and build
         run: |
