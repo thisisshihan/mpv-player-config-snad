@@ -1,0 +1,6 @@
+QWidget { background: #f4f4f6; color: #1b1b1f; font-size: 10pt; }
+QMenuBar, QMenu { background: #ffffff; }
+QMenu::item:selected, QMenuBar::item:selected { background: #3d6fd8; color: white; }
+QPushButton { background: #e4e5ea; border: 1px solid #b8bac2; border-radius: 4px; padding: 5px 14px; }
+QPushButton:hover { background: #d6d8df; }
+QComboBox, QSpinBox, QLineEdit { background: white; border: 1px solid #b8bac2; border-radius: 3px; padding: 3px; }
