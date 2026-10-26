@@ -3764,7 +3764,6 @@ mp.msg.info("snad-osc " .. VERSION .. "  layout=" .. S.layout ..
 local announced = false
 
 mp.register_event("file-loaded", function()
-    mp.commandv("script-message", "osc-visibility", "never", "no-osd")
     if not announced then
         announced = true
         if not layout_known then
@@ -3785,17 +3784,38 @@ mp.register_event("end-file", function() history_pos(); history_save() end)
 mp.register_event("shutdown", function() history_pos(); history_save() end)
 mp.add_periodic_timer(15, function() history_pos(); history_save() end)
 
--- nothing loaded: let mpv's stock OSC draw its logo; take over again once a file loads
-mp.observe_property("idle-active", "bool", function(_, idle)
-    if not opts.idle_logo then return end
-    S.idle = idle and true or false
-    if S.idle then
-        clear_overlay()
-        mp.commandv("script-message", "osc-visibility", "auto", "no-osd")
-    else
+-- Stock OSC and its "Drop files or URLs" logo. The stock OSC only wipes the logo from its tick(), and
+-- tick() does nothing once visibility is "never" -- so if "never" arrives while the logo is still on
+-- screen (drag-and-drop onto an idle player), the logo stays forever. Release it in two steps:
+-- turn the idle screen off and let the OSC tick once (visibility "auto" wipes it), then set "never".
+local osc_release_timer
+local function stock_osc_release()
+    if mp.get_property_bool("idle-active") then return end
+    if opts.idle_logo then S.idle = false end
+    mp.commandv("script-message", "osc-idlescreen", "no", "no-osd")
+    mp.commandv("script-message", "osc-visibility", "auto", "no-osd")
+    if osc_release_timer then osc_release_timer:kill() end
+    osc_release_timer = mp.add_timeout(0.25, function()
+        if mp.get_property_bool("idle-active") then return end
         mp.commandv("script-message", "osc-visibility", "never", "no-osd")
+    end)
+end
+
+mp.observe_property("idle-active", "bool", function(_, idle)
+    if idle then
+        if opts.idle_logo then
+            S.idle = true
+            clear_overlay()
+            mp.commandv("script-message", "osc-idlescreen", "yes", "no-osd")
+            mp.commandv("script-message", "osc-visibility", "auto", "no-osd")
+        else
+            mp.commandv("script-message", "osc-idlescreen", "no", "no-osd")
+        end
+    else
+        stock_osc_release()
     end
 end)
+mp.register_event("file-loaded", stock_osc_release)
 
 mp.add_periodic_timer(0.1, function()
     if not S.visible then
