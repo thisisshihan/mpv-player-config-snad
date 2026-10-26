@@ -69,17 +69,9 @@ mpv/
 **Android style seek bar**<br/>
 <img src="https://github.com/thisisshihan/screenshots/blob/master/new_4.jpg" width="800">
 
-**Simple Default Interface**<br/>
-<img src="https://github.com/thisisshihan/screenshots/blob/master/mpv.interface2.png" width="800">
-
 ##
 **Touchpad Gesture**<br/>
 <img src="https://github.com/thisisshihan/screenshots/blob/master/touchpadGesture2.png" width="300">
-
-##
-**Advanced Playlist Manager**<br/>
-_Navigate_ <kbd> UP </kbd> / <kbd>DOWN</kbd> / <kbd>    SPACE    </kbd> / <kbd> < </kbd> / <kbd> > </kbd> <br/>_A Complete key guide -->_ [<kbd>key-guide</kbd>](https://github.com/thisisshihan/mpv-player-config-snad/blob/mpv-config-snad-windows-ubuntu-linux-macos/KEY.md)<br/>\
-<img src="https://github.com/thisisshihan/screenshots/blob/master/mpv.playlist.png" width="800">
 
 ##
 **Podcast RSS Feed Support**<br/>
